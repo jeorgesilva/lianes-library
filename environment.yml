@@ -5,6 +5,8 @@ channels:
 dependencies:
   - python=3.11
   - pandas
+  - streamlit
+  - sqlalchemy
   - matplotlib
   - beautifulsoup4
   - ipykernel
