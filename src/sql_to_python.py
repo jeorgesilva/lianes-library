@@ -44,7 +44,27 @@ existing_cols = {csv_col: db_col for csv_col, db_col in column_mapping.items() i
 # create a new DataFrame with only the existing columns and renamed
 books_for_db = books_df[list(existing_cols.keys())].rename(columns=existing_cols)
 
-# send to SQL table 'books'
+# =====================================
+# 4. Clean the DataFrame before sending to DB
+# =====================================
+
+# drop rows where all values are NaN
+books_for_db = books_for_db.dropna(how="all")
+# drop rows with NaN in ISBN (assuming it's required)
+books_for_db = books_for_db[books_for_db["ISBN"].notna()]
+# set default values for missing columns in DB  table
+if "cost_book" not in books_for_db.columns:
+    books_for_db["cost_book"] = 0.0  # default cost
+if "book_status" not in books_for_db.columns:
+    books_for_db["book_status"] = "AVAILABLE"  # default status 
+# drop rows with NaN in ISBN or empty strings
+books_for_db = books_for_db[books_for_db["ISBN"].notna()]
+books_for_db["ISBN"] = books_for_db["ISBN"].astype(str)
+books_for_db = books_for_db[books_for_db["ISBN"].str.strip() != ""]
+
+# =====================================
+# 5. Send to SQL table 'books'
+# =====================================
 books_for_db.to_sql(
     'books',
     if_exists='append',
