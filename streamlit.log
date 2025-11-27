@@ -1,0 +1,245 @@
+2025-11-27 15:35:28.682 Uncaught app execution
+Traceback (most recent call last):
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/Users/jeorgecassiodesousasilva/Documents/lianes-library/lianes-library/src/front-end.py", line 5, in <module>
+    from src.CRUD_Blueprint import (
+ModuleNotFoundError: No module named 'src'
+2025-11-27 15:35:47.245 Uncaught app execution
+Traceback (most recent call last):
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/Users/jeorgecassiodesousasilva/Documents/lianes-library/lianes-library/src/front-end.py", line 5, in <module>
+    from src.CRUD_Blueprint import (
+ModuleNotFoundError: No module named 'src'
+2025-11-27 15:35:54.272 Uncaught app execution
+Traceback (most recent call last):
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/Users/jeorgecassiodesousasilva/Documents/lianes-library/lianes-library/src/front-end.py", line 5, in <module>
+    from src.CRUD_Blueprint import (
+ModuleNotFoundError: No module named 'src'
+2025-11-27 15:38:03.600 Uncaught app execution
+Traceback (most recent call last):
+  File "/Users/jeorgecassiodesousasilva/Documents/lianes-library/lianes-library/src/CRUD_Blueprint.py", line 37, in get_engine
+    from .sql_to_python import get_engine as _get_engine
+  File "/Users/jeorgecassiodesousasilva/Documents/lianes-library/lianes-library/src/sql_to_python.py", line 15, in <module>
+    books_df = pd.read_csv(
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/pandas/io/parsers/readers.py", line 1026, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/pandas/io/parsers/readers.py", line 620, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/pandas/io/parsers/readers.py", line 1620, in __init__
+    self._engine = self._make_engine(f, self.engine)
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/pandas/io/parsers/readers.py", line 1880, in _make_engine
+    self.handles = get_handle(
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/pandas/io/common.py", line 873, in get_handle
+    handle = open(
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/kubrademirhan/lianes_library/lianes-library/data/books_clean_debug2.csv'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/jeorgecassiodesousasilva/Documents/lianes-library/lianes-library/src/CRUD_Blueprint.py", line 42, in get_engine
+    from .sql_to_python import engine as _engine
+  File "/Users/jeorgecassiodesousasilva/Documents/lianes-library/lianes-library/src/sql_to_python.py", line 15, in <module>
+    books_df = pd.read_csv(
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/pandas/io/parsers/readers.py", line 1026, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/pandas/io/parsers/readers.py", line 620, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/pandas/io/parsers/readers.py", line 1620, in __init__
+    self._engine = self._make_engine(f, self.engine)
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/pandas/io/parsers/readers.py", line 1880, in _make_engine
+    self.handles = get_handle(
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/pandas/io/common.py", line 873, in get_handle
+    handle = open(
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/kubrademirhan/lianes_library/lianes-library/data/books_clean_debug2.csv'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/Users/jeorgecassiodesousasilva/Documents/lianes-library/lianes-library/src/front-end.py", line 378, in <module>
+    df = get_books(title=title or None, author=author or None, limit=int(limit))
+  File "/Users/jeorgecassiodesousasilva/Documents/lianes-library/lianes-library/src/CRUD_Blueprint.py", line 97, in get_books
+    with get_engine().connect() as conn:
+  File "/Users/jeorgecassiodesousasilva/Documents/lianes-library/lianes-library/src/CRUD_Blueprint.py", line 51, in get_engine
+    raise RuntimeError(
+RuntimeError: Database engine is not configured.
+Create `src/db_connection.py` or implement `get_engine()` in `src/sql_to_python.py`.
+/Users/jeorgecassiodesousasilva/Documents/lianes-library/lianes-library/src/db_connection.py:61: UserWarning: DATABASE_URL not set and DB env vars not found — falling back to local sqlite at: /Users/jeorgecassiodesousasilva/Documents/lianes-library/lianes-library/data/lianes.db
+  warnings.warn(
+2025-11-27 15:46:30.691 Uncaught app execution
+Traceback (most recent call last):
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.OperationalError: no such table: books
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/Users/jeorgecassiodesousasilva/Documents/lianes-library/lianes-library/src/front-end.py", line 378, in <module>
+    df = get_books(title=title or None, author=author or None, limit=int(limit))
+  File "/Users/jeorgecassiodesousasilva/Documents/lianes-library/lianes-library/src/CRUD_Blueprint.py", line 104, in get_books
+    result = conn.execute(text(query), params)
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py", line 1419, in execute
+    return meth(
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/sql/elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: books
+[SQL: SELECT * FROM books WHERE 1=1 AND title LIKE ? LIMIT ?]
+[parameters: ('%great%', 50)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-11-27 15:50:05.841 Uncaught app execution
+Traceback (most recent call last):
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.OperationalError: no such table: books
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/Users/jeorgecassiodesousasilva/Documents/lianes-library/lianes-library/src/front-end.py", line 378, in <module>
+    df = get_books(title=title or None, author=author or None, limit=int(limit))
+  File "/Users/jeorgecassiodesousasilva/Documents/lianes-library/lianes-library/src/CRUD_Blueprint.py", line 104, in get_books
+    result = conn.execute(text(query), params)
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py", line 1419, in execute
+    return meth(
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/sql/elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: books
+[SQL: SELECT * FROM books WHERE 1=1 AND title LIKE ? LIMIT ?]
+[parameters: ('%great%', 50)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-11-27 15:50:06.872 Uncaught app execution
+Traceback (most recent call last):
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.OperationalError: no such table: books
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/Users/jeorgecassiodesousasilva/Documents/lianes-library/lianes-library/src/front-end.py", line 378, in <module>
+    df = get_books(title=title or None, author=author or None, limit=int(limit))
+  File "/Users/jeorgecassiodesousasilva/Documents/lianes-library/lianes-library/src/CRUD_Blueprint.py", line 104, in get_books
+    result = conn.execute(text(query), params)
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py", line 1419, in execute
+    return meth(
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/sql/elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: books
+[SQL: SELECT * FROM books WHERE 1=1 AND title LIKE ? LIMIT ?]
+[parameters: ('%great%', 50)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-11-27 15:50:15.173 Uncaught app execution
+Traceback (most recent call last):
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.OperationalError: no such table: books
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/Users/jeorgecassiodesousasilva/Documents/lianes-library/lianes-library/src/front-end.py", line 378, in <module>
+    df = get_books(title=title or None, author=author or None, limit=int(limit))
+  File "/Users/jeorgecassiodesousasilva/Documents/lianes-library/lianes-library/src/CRUD_Blueprint.py", line 104, in get_books
+    result = conn.execute(text(query), params)
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py", line 1419, in execute
+    return meth(
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/sql/elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/Users/jeorgecassiodesousasilva/Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: books
+[SQL: SELECT * FROM books WHERE 1=1 AND title LIKE ? LIMIT ?]
+[parameters: ('%great%', 50)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+
+
+  You can now view your Streamlit app in your browser.
+
+  URL: http://0.0.0.0:8502
+
+  Stopping...
+
