@@ -69,3 +69,11 @@ BEGIN
 END$$
 
 DELIMITER ;
+
+
+-- ============================
+-- 5) MODIFY transactions column name 
+-- (Expected_return_date) to (Due_date)
+-- ============================
+
+ALTER TABLE transactions CHANGE COLUMN expected_return_date due_date DATE;

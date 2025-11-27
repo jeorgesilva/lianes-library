@@ -1,6 +1,7 @@
 import pandas as pd
 from sqlalchemy import create_engine
 import urllib.parse
+import getpass
 # ==============================
 # 1. creating the path to CSV
 # ==============================
@@ -20,11 +21,15 @@ books_df = pd.read_csv(
 # =====================================
 # 3. send DataFrame to MySQL table
 # =====================================
+
+# Prompt for password securely
+raw_password = getpass.getpass("Enter MySQL password: ")
+
+
 # create the connection engine
 schema = "lianes_library"
 host = "127.0.0.1"
 user = "root"
-raw_password = "kugtagt22"
 password = urllib.parse.quote_plus(raw_password)
 port = 3306
 
