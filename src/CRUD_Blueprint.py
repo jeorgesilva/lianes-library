@@ -215,9 +215,9 @@ def get_exchange_rate(from_currency: str, to_currency: str = "EUR") -> Optional[
 
 
 def google_books_lookup(query: str, max_results: int = 5, api_key: Optional[str] = None) -> List[Dict[str, Any]]:
-	"""Consulta Google Books usando uma query (isbn:xxx ou title/author).
+	"""Searchs Google Books through query (isbn:xxx or title/author).
 
-	Retorna lista de items (podem ser vazias).
+	Returns items list (can be null).
 	"""
 	params = {
 		"q": query,
@@ -241,7 +241,7 @@ def google_books_lookup(query: str, max_results: int = 5, api_key: Optional[str]
 
 
 def parse_google_item(item: Dict[str, Any]) -> Dict[str, Any]:
-	"""Extrai título, autores, isbns e preço de um item retornado pela API."""
+	"""Extracts títle, autthor, isbns and price from items returned by the API."""
 	info = item.get("volumeInfo", {}) or {}
 	sale = item.get("saleInfo", {}) or {}
 

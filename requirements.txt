@@ -12,8 +12,14 @@ jupyterlab
 matplotlib
 beautifulsoup4
 ipykernel
-streamlit
+streamlit==1.53.1
 pytest
+langchain==0.1.20
+langchain-huggingface
+langchain-core
+sentence-transformers==3.0.1
+chromadb==0.4.24
+huggingface_hub
 # Optional pip-only / extras (uncomment if needed):
 # google-api-python-client
 # google-auth
