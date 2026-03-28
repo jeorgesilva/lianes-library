@@ -1,9 +1,14 @@
 import streamlit as st
 import requests
 import pandas as pd
+from src.ui.styles import apply_styles
 
 # --- Configurações Básicas ---
 st.set_page_config(page_title="Liane's Smart Library", page_icon="📚", layout="wide")
+
+# Aplica o CSS Premium que criámos
+apply_styles()
+
 API_URL = "https://lianes-library.onrender.com"
 
 # --- Navegação Lateral ---
@@ -31,7 +36,7 @@ if page == "Dashboard":
             else:
                 st.success("Nenhum livro emprestado no momento! Todos estão na estante.")
     except requests.exceptions.ConnectionError:
-        st.error("⚠️ Erro de conexão. Verifique se a API (FastAPI) está rodando na porta 8000.")
+        st.error("⚠️ Erro de conexão. Aguarde um momento enquanto o servidor desperta.")
 
 # --- Página 2: AI Smart Assistant ---
 elif page == "🧠 Smart Assistant":
@@ -49,16 +54,30 @@ elif page == "🧠 Smart Assistant":
         if st.button("Buscar por Vibe"):
             if query:
                 with st.spinner("Analisando as vibes do seu acervo..."):
-                    res = requests.get(f"{API_URL}/search/vibe", params={"q": query, "limit": 3})
-                    if res.status_code == 200:
-                        results = res.json().get("results", [])
-                        if results:
-                            for r in results:
-                                st.info(f"**{r['title']}** por {r['author']}\n\n*Relevância: {r['relevance_score']*100:.1f}%*\n\n{r['content_summary']}")
+                    try:
+                        res = requests.get(f"{API_URL}/search/vibe", params={"q": query, "limit": 3})
+                        
+                        if res.status_code == 200:
+                            results = res.json().get("results", [])
+                            if results:
+                                # AQUI ENTRA O NOVO DESIGN DOS CARDS!
+                                for book in results:
+                                    st.markdown(f"""
+                                        <div class="book-card">
+                                            <div style="display: flex; justify-content: space-between;">
+                                                <strong style="font-size: 1.1rem; color: #F9FAFB;">📖 {book['title']}</strong>
+                                                <span class="match-tag">{int(book['relevance_score']*100)}% Vibe Match</span>
+                                            </div>
+                                            <div style="color: #8B5CF6; font-size: 0.9rem; margin-bottom: 10px; font-weight: 500;">{book['author']}</div>
+                                            <div style="font-size: 0.85rem; opacity: 0.8; color: #D1D5DB; line-height: 1.5;">{book['content_summary']}</div>
+                                        </div>
+                                    """, unsafe_allow_html=True)
+                            else:
+                                st.warning("Nenhum livro combinou com essa vibe.")
                         else:
-                            st.warning("Nenhum livro combinou com essa vibe.")
-                    else:
-                        st.error("Erro na busca semântica.")
+                            st.error(f"Erro na busca: {res.text}")
+                    except Exception as e:
+                        st.error(f"Erro de conexão com o servidor: {e}")
     
     # Aba 2: Chatbot
     with tab2:
@@ -79,13 +98,16 @@ elif page == "🧠 Smart Assistant":
 
             with st.chat_message("assistant"):
                 with st.spinner("Pensando..."):
-                    res = requests.post(f"{API_URL}/chat/", json={"message": prompt})
-                    if res.status_code == 200:
-                        reply = res.json().get("reply", "Desculpe, não entendi.")
-                        st.markdown(reply)
-                        st.session_state.messages.append({"role": "assistant", "content": reply})
-                    else:
-                        st.error("Erro ao conectar com o LLM.")
+                    try:
+                        res = requests.post(f"{API_URL}/chat/", json={"message": prompt})
+                        if res.status_code == 200:
+                            reply = res.json().get("reply", "Desculpe, não entendi.")
+                            st.markdown(reply)
+                            st.session_state.messages.append({"role": "assistant", "content": reply})
+                        else:
+                            st.error(f"Erro ao conectar com o LLM: {res.text}")
+                    except Exception as e:
+                        st.error(f"Erro de conexão com o servidor: {e}")
 
 # --- Página 3: Catálogo de Livros ---
 elif page == "📖 Book Catalog":
@@ -107,11 +129,14 @@ elif page == "📖 Book Catalog":
                     st.error("Erro ao adicionar livro.")
 
     st.markdown("### Acervo Atual")
-    res = requests.get(f"{API_URL}/books/")
-    if res.status_code == 200:
-        books = res.json()
-        if books:
-            st.dataframe(pd.DataFrame(books)[['book_id', 'title', 'author', 'book_status']], use_container_width=True)
+    try:
+        res = requests.get(f"{API_URL}/books/")
+        if res.status_code == 200:
+            books = res.json()
+            if books:
+                st.dataframe(pd.DataFrame(books)[['book_id', 'title', 'author', 'book_status']], use_container_width=True)
+    except Exception as e:
+        st.error(f"Erro ao carregar o catálogo: {e}")
 
 # --- Página 4: Mutuários (Amigos) ---
 elif page == "👥 Borrowers":
@@ -133,11 +158,14 @@ elif page == "👥 Borrowers":
                     st.error("Erro ao adicionar amigo.")
 
     st.markdown("### Lista de Amigos")
-    res = requests.get(f"{API_URL}/borrowers/")
-    if res.status_code == 200:
-        borrowers = res.json()
-        if borrowers:
-            st.dataframe(pd.DataFrame(borrowers)[['person_id', 'first_name', 'last_name', 'status']], use_container_width=True)
+    try:
+        res = requests.get(f"{API_URL}/borrowers/")
+        if res.status_code == 200:
+            borrowers = res.json()
+            if borrowers:
+                st.dataframe(pd.DataFrame(borrowers)[['person_id', 'first_name', 'last_name', 'status']], use_container_width=True)
+    except Exception as e:
+        st.error(f"Erro ao carregar os amigos: {e}")
 
 # --- Página 5: Empréstimos ---
 elif page == "🔄 Loans":
