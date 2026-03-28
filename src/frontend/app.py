@@ -1,6 +1,14 @@
+import sys
+import os
 import streamlit as st
 import requests
 import pandas as pd
+
+# 🚨 ESTA É A MAGIA QUE RESOLVE O ERRO 🚨
+# Diz ao Python para reconhecer a pasta raiz do projeto
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
+# Agora o Python já consegue encontrar a pasta src.ui!
 from src.ui.styles import apply_styles
 
 # --- Configurações Básicas ---
