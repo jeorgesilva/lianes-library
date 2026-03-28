@@ -1,42 +1,16 @@
-# --- API & Backend (Adicionados para a nova arquitetura) ---
 fastapi
-uvicorn[standard]
-python-dotenv
-pydantic
-
-# --- Frontend & Utils ---
-streamlit==1.53.1
-requests
-
-# --- Database (Relacional) ---
+uvicorn
 sqlalchemy
 pymysql
+python-dotenv
+pandas
 cryptography
-
-# --- AI, Vector Store & RAG ---
-langchain==0.1.20
-langchain-core
+langchain
 langchain-community
 langchain-huggingface
-sentence-transformers==3.0.1
+langchain-pinecone
 pinecone-client
-tiktoken
+sentence-transformers
 huggingface_hub
-# langchain-openai # (Descomente se for usar a OpenAI no librarian.py no futuro)
-
-# --- Data Science, Prototipação & Testes (Seus pacotes originais) ---
-pandas
-pyarrow
-openpyxl
-lxml
-tqdm
-notebook
-jupyterlab
-matplotlib
-beautifulsoup4
-ipykernel
-pytest
-
-# Optional pip-only / extras:
-# google-api-python-client
-# google-auth
+jinja2
+python-multipart
