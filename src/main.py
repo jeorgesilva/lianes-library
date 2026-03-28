@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from .api.routers import authors, books, loans, users
+from .api.routers import authors, books, borrowers, loans
 
 app = FastAPI(
     title="Liane's Library API",
@@ -16,4 +16,4 @@ def healthcheck():
 app.include_router(books.router, prefix="/books", tags=["books"])
 app.include_router(authors.router, prefix="/authors", tags=["authors"])
 app.include_router(loans.router, prefix="/loans", tags=["loans"])
-app.include_router(users.router, prefix="/users", tags=["users"])
+app.include_router(borrowers.router, prefix="/users", tags=["users"])
