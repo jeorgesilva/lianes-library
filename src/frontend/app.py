@@ -3,6 +3,10 @@ import os
 import streamlit as st
 import requests
 import pandas as pd
+from pyzbar.pyzbar import decode
+from PIL import Image
+from src.api.openlibrary import buscar_livro_openlibrary
+
 
 # 🚨 ESTA É A MAGIA QUE RESOLVE O ERRO 🚨
 # Diz ao Python para reconhecer a pasta raiz do projeto
@@ -118,10 +122,65 @@ elif page == "🧠 Smart Assistant":
                         st.error(f"Erro de conexão com o servidor: {e}")
 
 # --- Página 3: Catálogo de Livros ---
+# --- Página 3: Catálogo de Livros ---
 elif page == "📖 Book Catalog":
     st.title("📖 Catálogo de Livros")
     
-    with st.expander("➕ Adicionar Novo Livro"):
+    # Criamos duas abas: Uma para o Scan, outra para o Manual
+    tab_scan, tab_manual = st.tabs(["📷 Scan Inteligente", "✍️ Adicionar Manualmente"])
+    
+    # --- ABA 1: SCAN INTELIGENTE ---
+    with tab_scan:
+        st.markdown("### Escanear Código de Barras (ISBN)")
+        st.write("Aponte a câmera para o código de barras na contracapa do livro e tire a foto.")
+        
+        foto = st.camera_input("Câmera")
+        
+        if foto:
+            with st.spinner("Analisando a imagem..."):
+                imagem = Image.open(foto)
+                codigos = decode(imagem)
+                
+                if codigos:
+                    isbn_lido = codigos[0].data.decode("utf-8")
+                    st.success(f"✅ Código lido: **{isbn_lido}**")
+                    
+                    with st.spinner("Buscando dados na Open Library..."):
+                        livro = buscar_livro_openlibrary(isbn_lido)
+                        
+                        if livro:
+                            col1, col2 = st.columns([1, 2])
+                            with col1:
+                                if livro['cover_url']:
+                                    st.image(livro['cover_url'], use_container_width=True, caption="Capa Encontrada")
+                                else:
+                                    st.info("Sem imagem de capa disponível.")
+                            
+                            with col2:
+                                st.markdown(f"### {livro['title']}")
+                                st.markdown(f"**Autor:** {livro['author']}")
+                                st.markdown(f"**ISBN:** {livro['isbn']}")
+                                
+                                if st.button("➕ Salvar Livro no Acervo", type="primary"):
+                                    payload = {
+                                        "title": livro['title'],
+                                        "author": livro['author'],
+                                        "isbn": livro['isbn'],
+                                        "cost": 0.0
+                                    }
+                                    res = requests.post(f"{API_URL}/books/", json=payload)
+                                    if res.status_code == 201:
+                                        st.success(f"O livro '{livro['title']}' foi adicionado com sucesso!")
+                                    else:
+                                        st.error("Erro ao salvar no banco de dados.")
+                        else:
+                            st.warning("O código de barras foi lido, mas o livro não está na base da Open Library.")
+                else:
+                    st.error("Nenhum código de barras detectado. Tente focar melhor e garanta boa iluminação!")
+
+    # --- ABA 2: ADICIONAR MANUALMENTE ---
+    with tab_manual:
+        st.markdown("### Digitação Manual")
         with st.form("new_book_form"):
             col1, col2 = st.columns(2)
             title = col1.text_input("Título *")
@@ -136,6 +195,8 @@ elif page == "📖 Book Catalog":
                 else:
                     st.error("Erro ao adicionar livro.")
 
+    # --- LISTA DO ACERVO ---
+    st.markdown("---")
     st.markdown("### Acervo Atual")
     try:
         res = requests.get(f"{API_URL}/books/")

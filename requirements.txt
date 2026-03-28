@@ -14,3 +14,5 @@ sentence-transformers
 huggingface_hub
 jinja2
 python-multipart
+pyzbar
+Pillow
