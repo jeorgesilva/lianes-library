@@ -4,7 +4,7 @@ import pandas as pd
 
 # --- Configurações Básicas ---
 st.set_page_config(page_title="Liane's Smart Library", page_icon="📚", layout="wide")
-API_URL = "http://localhost:8000"
+API_URL = "https://lianes-library.onrender.com"
 
 # --- Navegação Lateral ---
 st.sidebar.title("📚 Liane's Library")
