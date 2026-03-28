@@ -264,29 +264,141 @@ elif page == "👥 Borrowers":
         st.error(f"Erro ao carregar os amigos: {e}")
 
 # --- Página 5: Empréstimos ---
+# --- Página 5: Empréstimos ---
 elif page == "🔄 Loans":
     st.title("🔄 Controle de Empréstimos")
+    
+    # Busca dados em tempo real para traduzir IDs em Nomes e ISBNs
+    books_list, friends_list, active_loans = [], [], []
+    try:
+        books_list = requests.get(f"{API_URL}/books/").json()
+        friends_list = requests.get(f"{API_URL}/borrowers/").json()
+        active_loans = requests.get(f"{API_URL}/loans/active").json()
+    except:
+        st.warning("Aviso: Falha ao carregar alguns dados do servidor.")
+
     col1, col2 = st.columns(2)
+    
+    # ==========================================
+    # 📤 COLUNA 1: EMPRESTAR LIVRO (CHECKOUT)
+    # ==========================================
     with col1:
-        st.subheader("📤 Emprestar Livro (Checkout)")
-        with st.form("checkout_form"):
-            b_id = st.number_input("ID do Livro", min_value=1, step=1)
-            p_id = st.number_input("ID do Amigo", min_value=1, step=1)
-            days = st.number_input("Dias de Empréstimo", value=14, min_value=1)
-            if st.form_submit_button("Registrar Empréstimo"):
-                res = requests.post(f"{API_URL}/loans/", json={"book_id": b_id, "person_id": p_id, "loan_period_days": days})
+        st.subheader("📤 Emprestar (Checkout)")
+        
+        # Controle da Câmera de Empréstimo
+        if "cam_checkout" not in st.session_state: st.session_state.cam_checkout = False
+        if "isbn_checkout" not in st.session_state: st.session_state.isbn_checkout = ""
+
+        if not st.session_state.cam_checkout:
+            if st.button("📸 Escanear Livro", key="btn_cam_out"):
+                st.session_state.cam_checkout = True
+                st.rerun()
+        else:
+            if st.button("❌ Desligar Câmera", key="btn_close_out"):
+                st.session_state.cam_checkout = False
+                st.rerun()
+            
+            foto_out = st.camera_input("Aponte para o código de barras", key="cam_out")
+            if foto_out:
+                with st.spinner("Lendo..."):
+                    codigos = decode(Image.open(foto_out))
+                    if codigos:
+                        st.session_state.isbn_checkout = codigos[0].data.decode("utf-8")
+                        st.session_state.cam_checkout = False # Desliga a câmera automaticamente
+                        st.rerun()
+                    else:
+                        st.error("Código não detectado.")
+
+        # Campos de preenchimento
+        st.markdown("---")
+        isbn_input_out = st.text_input("ISBN ou ID do Livro", value=st.session_state.isbn_checkout)
+        
+        # Lista suspensa com os nomes dos amigos em vez de IDs
+        opcoes_amigos = {f"{f['first_name']} {f['last_name']}": f['person_id'] for f in friends_list} if friends_list else {"Nenhum amigo cadastrado": None}
+        amigo_selecionado = st.selectbox("Selecione o Amigo", options=list(opcoes_amigos.keys()))
+        
+        dias = st.number_input("Dias de Empréstimo", value=14, min_value=1)
+        
+        if st.button("Registrar Saída", type="primary", use_container_width=True):
+            b_id = None
+            # Tenta descobrir o ID do livro pelo ISBN lido
+            for b in books_list:
+                if str(b.get('isbn')) == isbn_input_out or str(b.get('book_id')) == isbn_input_out:
+                    b_id = b['book_id']
+                    break
+            
+            # Fallback se o utilizador digitou diretamente o ID do livro (ex: "1")
+            if not b_id and isbn_input_out.isdigit():
+                b_id = int(isbn_input_out)
+            
+            p_id = opcoes_amigos.get(amigo_selecionado)
+            
+            if b_id and p_id:
+                res = requests.post(f"{API_URL}/loans/", json={"book_id": b_id, "person_id": p_id, "loan_period_days": dias})
                 if res.status_code == 201:
-                    st.success("Empréstimo registrado com sucesso!")
+                    st.success("Empréstimo registado!")
+                    st.session_state.isbn_checkout = "" # Limpa o campo
                 else:
                     st.error(f"Erro: {res.json().get('detail')}")
+            else:
+                st.warning("Livro não encontrado no acervo ou amigo inválido.")
 
+    # ==========================================
+    # 📥 COLUNA 2: DEVOLVER LIVRO (RETURN)
+    # ==========================================
     with col2:
-        st.subheader("📥 Devolver Livro (Return)")
-        with st.form("return_form"):
-            t_id = st.number_input("ID da Transação", min_value=1, step=1)
-            if st.form_submit_button("Registrar Devolução"):
+        st.subheader("📥 Devolver (Return)")
+        
+        # Controle da Câmera de Devolução
+        if "cam_return" not in st.session_state: st.session_state.cam_return = False
+        if "isbn_return" not in st.session_state: st.session_state.isbn_return = ""
+
+        if not st.session_state.cam_return:
+            if st.button("📸 Escanear Devolução", key="btn_cam_in"):
+                st.session_state.cam_return = True
+                st.rerun()
+        else:
+            if st.button("❌ Desligar Câmera", key="btn_close_in"):
+                st.session_state.cam_return = False
+                st.rerun()
+            
+            foto_in = st.camera_input("Aponte para o código de barras", key="cam_in")
+            if foto_in:
+                with st.spinner("Lendo..."):
+                    codigos = decode(Image.open(foto_in))
+                    if codigos:
+                        st.session_state.isbn_return = codigos[0].data.decode("utf-8")
+                        st.session_state.cam_return = False
+                        st.rerun()
+                    else:
+                        st.error("Código não detectado.")
+
+        st.markdown("---")
+        isbn_input_in = st.text_input("ISBN do Livro ou ID da Transação", value=st.session_state.isbn_return)
+        
+        if st.button("Registrar Devolução", type="primary", use_container_width=True):
+            t_id = None
+            
+            # Se a pessoa digitou apenas o número da transação (ID curto)
+            if isbn_input_in.isdigit() and len(isbn_input_in) < 10: 
+                t_id = int(isbn_input_in)
+            else:
+                # O sistema procura qual é o título do livro que tem esse ISBN
+                b_title = next((b['title'] for b in books_list if str(b.get('isbn')) == isbn_input_in), None)
+                
+                # Procura a transação ativa onde o título bate
+                if b_title:
+                    for loan in active_loans:
+                        if loan.get('book_title') == b_title:
+                            t_id = loan.get('transaction_id')
+                            break
+
+            if t_id:
                 res = requests.post(f"{API_URL}/loans/{t_id}/return", json={})
                 if res.status_code == 200:
                     st.success("Livro devolvido com sucesso!")
+                    st.session_state.isbn_return = "" # Limpa o campo
                 else:
                     st.error(f"Erro: {res.json().get('detail')}")
+            else:
+                st.warning("Não foi encontrado um empréstimo ativo para este livro.")
