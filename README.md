@@ -1,4 +1,4 @@
-```markdown
+
 # 📚 Liane’s Library  
 *A personal book-loan tracking system, evolving into a smart, AI-powered library.*
 
