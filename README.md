@@ -1,5 +1,6 @@
+```markdown
 # 📚 Liane’s Library  
-*A personal book-loan tracking system*
+*A personal book-loan tracking system, evolving into a smart, AI-powered library.*
 
 ---
 
@@ -24,116 +25,75 @@ Our mission: **Make book sharing joyful again.**
 
 ---
 
-## 🚀 Project Roadmap
+## 🏗️ Architecture & Folder Structure
 
-| Phase | Description | Deliverables |
-|-------|-------------|--------------|
-| 1️⃣ Planning | Define requirements, data schema, tech stack | ER diagram, SQL schema |
-| 2️⃣ Database | Create tables + relationships | `books`, `borrowers`, `transactions` |
-| 3️⃣ Backend | CRUD logic | DB connector, data validation |
-| 4️⃣ Frontend | Streamlit UI | Book list, loan & return forms |
-| 5️⃣ Integration | Connect UI to DB | Database-powered app |
-| 6️⃣ Testing | UX + functional tests | Fixes & improvements |
-| 7️⃣ Deployment | Host final version | GitHub/Streamlit Cloud |
-| 8️⃣ Documentation | Guide for Liane | Tutorial + README update |
+As the project scales to include AI features and cloud deployment, we adopted a clean, domain-oriented architecture:
 
----
-
-## 🚀 Future Implementation Roadmap
-
-This section outlines planned enhancements and implementation-ready improvements for upcoming versions of Liane’s Library Management System. Items are organized by functional domains and written in technical language to help guide development work.
-
-### 📚 Book Management Improvements
-1. Damage & Loss Registry
-
-    - Create a dedicated `book_incidents` table to register damaged, lost, or missing books.
-    - Suggested columns: `id`, `book_id`, `person_id`, `incident_type`, `incident_date`, `compensation_status`, `notes`.
-    - Add a UI section **Book Incidents** to display and filter incidents.
-    - Automatically synchronize `books.book_status` with incident types (e.g., set to `lost`, `damaged`, `removed`).
-
-2. Enhanced Book Status Automation
-
-    - Extend status-change logic to:
-      - Auto-flag loans/books as `overdue` when the due date passes.
-      - Auto-change status to `lost` after a configurable threshold (e.g., 60 days overdue).
-      - Cascade status changes into transactions/history (recording who and when a status change occurred).
-
-3. Book Wishlist + Price Tracking
-
-    - Add a `wishlist` table for desired books not yet owned (columns: `id`, `isbn`, `title`, `requested_by`, `created_at`, `notes`).
-    - Integrate Google Books or other APIs to fetch metadata and price history.
-    - Track sale events and send email/UI alerts when price drops are detected.
-    - Support manual wishlist additions by ISBN or title and display cover, edition, and authors.
-
-### 👤 Borrower Management Enhancements
-4. Borrower Waiting List
-
-    - Implement a waiting-list mechanism where multiple borrowers can queue for the same book.
-    - Store queue position, timestamp and notify/mark the first borrower when a book becomes available.
-
-5. Borrower Status System
-
-    - Add borrower states: `active`, `inactive`, `suspended`.
-    - Automate transitions: e.g., multiple overdue returns → `suspended`; long inactivity → `inactive`.
-    - Block `suspended` borrowers from creating new loans.
-
-6. Borrower History Flags & Risk Alerts
-
-    - Compute and store risk indicators (e.g., `has_delayed_returns`, `has_lost_books`, `has_damaged_books`).
-    - Surface visual warnings in the UI when selecting borrowers or creating loans.
-
-7. Multi-Book Borrowing Counter
-
-    - Add analytics to identify borrowers with multiple active loans and historically high activity.
-    - Expose as dashboard widgets and borrower-specific metadata.
-
-### 🔄 Transactions & Workflow Enhancements
-8. Multi-parameter Transaction Search
-
-    - Implement query endpoints and UI filters allowing combinations of `book_id`, `person_id`, `loan_date`, `expected_return_date`, `actual_return_date`, and `status`.
-
-9. Fix Negative Overdue Values
-
-    - Ensure `overdue_days` is calculated as `max(0, calculated_days)` and apply corrections retroactively if needed.
-
-10. Return Book by Book ID
-
-     - ✔ Already implemented: support returns by `book_id` without a transaction id.
-
-11. Return Transaction ID on Loan Creation
-
-     - ✔ Already implemented: `create_loan()` returns the generated `transaction_id`.
-
-### 🧠 New Suggested Enhancements
-12. Automatic Author Matching & Creation
-
-     - Build a pipeline to normalize and match author names against an `authors` table.
-     - Automatically create author records when missing and support a many-to-many relationship between books and authors.
-     - Integrate this with Google Books metadata parsing.
-
-13. Scheduled Background Jobs
-
-     - Add scheduled/background jobs for daily overdue detection, nightly price updates, and weekly borrower reports.
-     - Options: a simple cron on the host, a lightweight scheduler (APScheduler), or a Celery worker for scale.
-
-14. Full Audit Logging
-
-     - Add an `audit_log` table to record `action_type`, `user`, `timestamp`, `old_values`, `new_values` for critical operations.
-     - Make audit trails queryable and exportable for compliance and debugging.
+```text
+lianes-library/
+├── data/                  # Raw data, mockups, or backups
+├── notebooks/             # Prototyping Jupyter notebooks
+├── src/
+│   ├── frontend/          # 🎨 Streamlit UI app and components
+│   ├── api/               # 🔌 FastAPI routes and endpoints
+│   ├── db/                # 🗄️ Relational Database (MySQL) connection and CRUD logic
+│   ├── ai/                # 🧠 RAG, NLP, LLMs, Vector Stores (ChromaDB), and Agents
+│   ├── schemas/           # 📦 Pydantic Models for data validation
+│   ├── core/              # ⚙️ Global configurations and environment variables
+│   └── scripts/           # 🛠️ One-off utility or migration scripts
+├── .env                   # Environment credentials
+├── requirements.txt       # Project dependencies
+└── README.md              # Project documentation
+```
 
 ---
 
+## 🚀 Future Implementation Roadmap (AI & Cloud Era)
+
+This section outlines our strategic pivot towards an AI-powered, cloud-native architecture. While maintaining our core mission of tracking book loans, Liane's Library is evolving into a smart system leveraging Retrieval-Augmented Generation (RAG) and Natural Language Processing (NLP).
+
+### ☁️ Cloud & Infrastructure Migration
+1. **Fully Managed Cloud Deployment**
+    - Migrate the local MySQL database to a managed cloud provider (e.g., Supabase, AWS RDS, or PlanetScale) to ensure high availability.
+    - Deploy the Streamlit frontend to Streamlit Community Cloud or Vercel.
+    - Containerize the backend API (FastAPI) using Docker and deploy via Google Cloud Run or AWS AppRunner.
+
+2. **Vector Database Integration**
+    - Transition local vector stores (`ChromaDB`) to a robust cloud environment (e.g., Pinecone, Weaviate, or Chroma Cloud) to persist embeddings for book summaries and metadata.
+
+### 🧠 AI & NLP Integration (The "Smart Library")
+3. **Semantic Search & RAG Assistant**
+    - **Vibe Search:** Allow users to search for books using natural language (e.g., *"A sci-fi book about space travel and philosophy"*) instead of relying solely on exact title/author matches.
+    - **Library Chatbot:** Implement a conversational agent (using LangChain and LLMs) that can answer queries like: *"Who currently has my copy of The Great Gatsby?"* or *"Which of my friends are overdue on their returns?"*
+
+4. **Automated Metadata & Enrichment**
+    - Build an NLP pipeline to automatically extract and normalize author names, genres, and themes from raw text or external APIs (Google Books/OpenLibrary).
+    - Implement Fuzzy Matching to prevent duplicate borrower profiles (e.g., resolving "Jeorge Silva" vs. "Jeorge Cassio").
+
+5. **Smart Alerts & Insights**
+    - Use NLP to analyze reading habits and generate personalized borrowing recommendations for Liane's friends.
+    - Implement an intelligent, automated email/WhatsApp notification system for overdue books, using generated polite reminders.
+
+### 📚 Core System Enhancements (Legacy Support)
+6. **Damage & Loss Registry**
+    - Maintain a dedicated flow for registering damaged or lost books, automatically synchronizing book availability status.
+    
+7. **Audit & Analytics Dashboard**
+    - Track system usage, loan frequency, and RAG query patterns to understand how the library is being searched and utilized.
+
+---
 
 ## 🧱 Tech Stack
 
 | Layer | Tool |
 |-------|------|
-| 🗄️ Database | MySQL |
-| 🐍 Backend | Python |
-| 🎨 Frontend | Streamlit |
-| 🔗 Version Control | Git + GitHub |
-| 📐 Diagrams | Draw.io + Mermaid |
-| ⚙️ IDE | VS Code |
+| 🗄️ **Relational Database** | MySQL (Migrating to Cloud) |
+| 🗂️ **Vector Database** | ChromaDB / Pinecone |
+| 🐍 **Backend & API** | Python, FastAPI, Pydantic, SQLAlchemy |
+| 🧠 **AI & NLP** | LangChain, HuggingFace, OpenAI (or open-source LLMs) |
+| 🎨 **Frontend** | Streamlit |
+| ☁️ **Deployment** | Docker, Streamlit Cloud, AWS / GCP |
+| 🔗 **Version Control** | Git + GitHub |
 
 ---
 
@@ -175,4 +135,5 @@ erDiagram
 
     books ||--o{ transactions : contains
     borrowers ||--o{ transactions : borrows
-
+```
+```
