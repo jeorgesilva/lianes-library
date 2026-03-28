@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from .api.routers import authors, books, borrowers, loans
+from ..api.routers import authors, books, borrowers, loans
 
 app = FastAPI(
     title="Liane's Library API",

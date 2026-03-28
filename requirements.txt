@@ -1,9 +1,31 @@
-pandas
+# --- API & Backend (Adicionados para a nova arquitetura) ---
+fastapi
+uvicorn[standard]
+python-dotenv
+pydantic
+
+# --- Frontend & Utils ---
+streamlit==1.53.1
+requests
+
+# --- Database (Relacional) ---
 sqlalchemy
 pymysql
 cryptography
+
+# --- AI, Vector Store & RAG ---
+langchain==0.1.20
+langchain-core
+langchain-community
+langchain-huggingface
+sentence-transformers==3.0.1
+chromadb==0.4.24
+huggingface_hub
+# langchain-openai # (Descomente se for usar a OpenAI no librarian.py no futuro)
+
+# --- Data Science, Prototipação & Testes (Seus pacotes originais) ---
+pandas
 pyarrow
-requests
 openpyxl
 lxml
 tqdm
@@ -12,15 +34,8 @@ jupyterlab
 matplotlib
 beautifulsoup4
 ipykernel
-streamlit==1.53.1
 pytest
-langchain==0.1.20
-langchain-huggingface
-langchain-core
-sentence-transformers==3.0.1
-chromadb==0.4.24
-huggingface_hub
-# Optional pip-only / extras (uncomment if needed):
+
+# Optional pip-only / extras:
 # google-api-python-client
 # google-auth
-# some-other-pip-only-package
