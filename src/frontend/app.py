@@ -126,50 +126,89 @@ elif page == "🧠 Smart Assistant":
                         st.error(f"Erro de conexão com o servidor: {e}")
 
 # --- Página 3: Catálogo de Livros ---
+# --- Página 3: Catálogo de Livros ---
 elif page == "📖 Book Catalog":
     st.title("📖 Catálogo de Livros")
-    tab_scan, tab_manual = st.tabs(["📷 Scan Inteligente", "✍️ Adicionar Manualmente"])
     
-    with tab_scan:
+    # Substituímos as Tabs por um Radio horizontal para garantir que a câmera desligue
+    modo = st.radio(
+        "Escolha o método de adição:", 
+        ["📷 Scan Inteligente", "✍️ Adicionar Manualmente"], 
+        horizontal=True
+    )
+    
+    # --- MODO 1: SCAN INTELIGENTE ---
+    if modo == "📷 Scan Inteligente":
         st.markdown("### Escanear Código de Barras (ISBN)")
-        st.write("Aponte a câmera para o código de barras na contracapa do livro e tire a foto.")
-        foto = st.camera_input("Câmera")
         
-        if foto:
-            with st.spinner("Analisando a imagem..."):
-                imagem = Image.open(foto)
-                codigos = decode(imagem)
-                
-                if codigos:
-                    isbn_lido = codigos[0].data.decode("utf-8")
-                    st.success(f"✅ Código lido: **{isbn_lido}**")
-                    with st.spinner("Buscando dados na Open Library..."):
-                        livro = buscar_livro_openlibrary(isbn_lido)
-                        if livro:
-                            col1, col2 = st.columns([1, 2])
-                            with col1:
-                                if livro['cover_url']:
-                                    st.image(livro['cover_url'], use_container_width=True, caption="Capa Encontrada")
-                                else:
-                                    st.info("Sem imagem de capa disponível.")
-                            with col2:
-                                st.markdown(f"### {livro['title']}")
-                                st.markdown(f"**Autor:** {livro['author']}")
-                                st.markdown(f"**ISBN:** {livro['isbn']}")
-                                
-                                if st.button("➕ Salvar Livro no Acervo", type="primary"):
-                                    payload = {"title": livro['title'], "author": livro['author'], "isbn": livro['isbn'], "cost": 0.0}
-                                    res = requests.post(f"{API_URL}/books/", json=payload)
-                                    if res.status_code == 201:
-                                        st.success(f"O livro '{livro['title']}' foi adicionado com sucesso!")
-                                    else:
-                                        st.error("Erro ao salvar no banco de dados.")
-                        else:
-                            st.warning("O código de barras foi lido, mas o livro não está na base da Open Library.")
-                else:
-                    st.error("Nenhum código de barras detectado. Tente focar melhor e garanta boa iluminação!")
+        # Controle de estado da câmera (Liga/Desliga)
+        if "camera_ligada" not in st.session_state:
+            st.session_state.camera_ligada = False
 
-    with tab_manual:
+        # Botões para controlar a câmera
+        if not st.session_state.camera_ligada:
+            if st.button("📸 Ligar Câmera", type="primary"):
+                st.session_state.camera_ligada = True
+                st.rerun() # Recarrega a página para mostrar a câmera
+        else:
+            if st.button("❌ Desligar Câmera"):
+                st.session_state.camera_ligada = False
+                st.rerun() # Recarrega a página para esconder a câmera
+
+            # A câmera SÓ aparece se o botão "Ligar Câmera" foi clicado
+            foto = st.camera_input("Aponte para o código de barras na contracapa")
+            
+            if foto:
+                with st.spinner("Analisando a imagem..."):
+                    imagem = Image.open(foto)
+                    codigos = decode(imagem)
+                    
+                    if codigos:
+                        isbn_lido = codigos[0].data.decode("utf-8")
+                        st.success(f"✅ Código lido: **{isbn_lido}**")
+                        
+                        # Opcional: Desligar a câmera automaticamente após ler o código com sucesso
+                        # st.session_state.camera_ligada = False 
+                        
+                        with st.spinner("Buscando dados na Open Library..."):
+                            livro = buscar_livro_openlibrary(isbn_lido)
+                            
+                            if livro:
+                                col1, col2 = st.columns([1, 2])
+                                with col1:
+                                    if livro['cover_url']:
+                                        st.image(livro['cover_url'], use_container_width=True, caption="Capa Encontrada")
+                                    else:
+                                        st.info("Sem imagem de capa disponível.")
+                                
+                                with col2:
+                                    st.markdown(f"### {livro['title']}")
+                                    st.markdown(f"**Autor:** {livro['author']}")
+                                    st.markdown(f"**ISBN:** {livro['isbn']}")
+                                    
+                                    if st.button("➕ Salvar Livro no Acervo", type="primary"):
+                                        payload = {
+                                            "title": livro['title'],
+                                            "author": livro['author'],
+                                            "isbn": livro['isbn'],
+                                            "cost": 0.0
+                                        }
+                                        res = requests.post(f"{API_URL}/books/", json=payload)
+                                        if res.status_code == 201:
+                                            st.success(f"O livro '{livro['title']}' foi adicionado com sucesso!")
+                                            st.session_state.camera_ligada = False # Desliga a câmera após salvar
+                                        else:
+                                            st.error("Erro ao salvar no banco de dados.")
+                            else:
+                                st.warning("O código de barras foi lido, mas o livro não está na base da Open Library.")
+                    else:
+                        st.error("Nenhum código de barras detectado. Tente focar melhor e garanta boa iluminação!")
+
+    # --- MODO 2: ADICIONAR MANUALMENTE ---
+    elif modo == "✍️ Adicionar Manualmente":
+        # Garante que a câmera seja esquecida ao mudar de aba
+        st.session_state.camera_ligada = False 
+        
         st.markdown("### Digitação Manual")
         with st.form("new_book_form"):
             col1, col2 = st.columns(2)
@@ -177,6 +216,7 @@ elif page == "📖 Book Catalog":
             author = col2.text_input("Autor *")
             isbn = col1.text_input("ISBN")
             cost = col2.number_input("Custo (opcional)", min_value=0.0, step=0.1)
+            
             if st.form_submit_button("Salvar Livro"):
                 res = requests.post(f"{API_URL}/books/", json={"title": title, "author": author, "isbn": isbn, "cost": cost})
                 if res.status_code == 201:
@@ -184,6 +224,7 @@ elif page == "📖 Book Catalog":
                 else:
                     st.error("Erro ao adicionar livro.")
 
+    # --- LISTA DO ACERVO ---
     st.markdown("---")
     st.markdown("### Acervo Atual")
     try:
