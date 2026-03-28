@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv() # 👈 Isto força o Python a ler o ficheiro .env IMEDIATAMENTE!
+
 from sqlalchemy import text
 from src.db.connection import get_engine
 

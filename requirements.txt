@@ -19,7 +19,8 @@ langchain-core
 langchain-community
 langchain-huggingface
 sentence-transformers==3.0.1
-chromadb==0.4.24
+pinecone-client
+tiktoken
 huggingface_hub
 # langchain-openai # (Descomente se for usar a OpenAI no librarian.py no futuro)
 

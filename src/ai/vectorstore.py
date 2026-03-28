@@ -1,19 +1,23 @@
-# src/ai/vectorstore.py
 import os
 from typing import List, Dict, Any
-from langchain_community.vectorstores import Chroma
+from dotenv import load_dotenv
+
+# Usamos a integração oficial e mais moderna do LangChain para o Pinecone
+from langchain_pinecone import PineconeVectorStore 
 from src.ai.embeddings import get_embeddings_model
-from src.core.config import load_dotenv
 
-load_dotenv()
-CHROMA_DIR = os.getenv("CHROMA_PERSIST_DIR", "./chroma_data")
+# Força a leitura do .env
+load_dotenv(override=True)
 
-def get_chroma_db() -> Chroma:
-    """Inicia e retorna a conexão com o banco de dados vetorial ChromaDB."""
-    return Chroma(
-        collection_name="lianes_books",
-        embedding_function=get_embeddings_model(),
-        persist_directory=CHROMA_DIR
+PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
+PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "lianes-library")
+
+def get_pinecone_db() -> PineconeVectorStore:
+    """Inicia e retorna a conexão com o banco de dados vetorial Pinecone."""
+    return PineconeVectorStore(
+        index_name=PINECONE_INDEX_NAME,
+        embedding=get_embeddings_model(),
+        pinecone_api_key=PINECONE_API_KEY
     )
 
 def vibe_search(query: str, limit: int = 5) -> List[Dict[str, Any]]:
@@ -21,7 +25,8 @@ def vibe_search(query: str, limit: int = 5) -> List[Dict[str, Any]]:
     A famosa 'Vibe Search'.
     Busca livros por similaridade semântica ao invés de palavras-chave exatas.
     """
-    db = get_chroma_db()
+    db = get_pinecone_db()
+    
     # Busca os K documentos mais similares ao texto digitado
     results = db.similarity_search_with_score(query, k=limit)
     
@@ -32,7 +37,8 @@ def vibe_search(query: str, limit: int = 5) -> List[Dict[str, Any]]:
             "title": doc.metadata.get("title"),
             "author": doc.metadata.get("author"),
             "content_summary": doc.page_content,
-            "relevance_score": round(1.0 - score, 4) # Converte a distância para % de relevância
+            # O Pinecone (com Cosine) já retorna o score de 0 a 1, onde 1 é perfeito.
+            "relevance_score": round(score, 4) 
         })
         
     return formatted_results
