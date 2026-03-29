@@ -46,31 +46,28 @@ def renderizar_carrossel(titulo_secao, lista_livros):
         titulo_limpo = titulo_cru.replace('"', '&quot;').replace("'", "&#39;")
         autor = livro.get('author', 'Autor desconhecido')
         
-        # Simula uma sinopse (se o seu BD não tiver, usamos o autor e um texto genérico para o design)
         sinopse = f"Uma obra fascinante de {autor}. Explore os mistérios e as lições escondidas nestas páginas."
         
         if capa and str(capa).strip() != "" and capa != "None":
             img_html = f"<img src='{capa}' class='nx-cover' alt='{titulo_limpo}'>"
         else:
-            # Placeholder elegante caso falte a capa
             img_html = f"<div class='nx-cover' style='display:flex; align-items:center; justify-content:center; text-align:center; padding:10px; font-size:0.8rem; color:#A0AEC0;'>{titulo_limpo}</div>"
             
-        html_cards += f"""
-            <div class="nx-card">
-                {img_html}
-                <div class="nx-overlay">
-                    <div class="nx-title">{titulo_limpo}</div>
-                    <div class="nx-synopsis">{sinopse}</div>
-                    <div class="nx-actions">
-                        <div class="nx-btn" title="Já Li">✔️</div>
-                        <div class="nx-btn" title="Estou Lendo">📖</div>
-                        <div class="nx-btn" title="Lista de Leitura">➕</div>
-                    </div>
-                </div>
-            </div>
-        """
+        # AQUI ESTÁ A CORREÇÃO: Construímos a string sem espaços no início das linhas!
+        html_cards += f"<div class='nx-card'>"
+        html_cards += f"{img_html}"
+        html_cards += f"<div class='nx-overlay'>"
+        html_cards += f"<div class='nx-title'>{titulo_limpo}</div>"
+        html_cards += f"<div class='nx-synopsis'>{sinopse}</div>"
+        html_cards += f"<div class='nx-actions'>"
+        html_cards += f"<div class='nx-btn' title='Já Li'>✔️</div>"
+        html_cards += f"<div class='nx-btn' title='Estou Lendo'>📖</div>"
+        html_cards += f"<div class='nx-btn' title='Lista de Leitura'>➕</div>"
+        html_cards += f"</div></div></div>"
         
     html_cards += '</div>'
+    
+    # Injeta o HTML garantindo que não há recuos de Markdown
     st.markdown(html_cards, unsafe_allow_html=True)
     
 # --- Configurações Básicas ---
