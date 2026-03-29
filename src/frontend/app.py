@@ -93,6 +93,8 @@ page = st.sidebar.radio(
 
 # --- Página 1: Dashboard ---
 if page == "Dashboard":
+    from src.ui.styles import apply_styles
+    apply_styles()
     st.markdown("<h1 style='color: #A855F7; margin-bottom: 20px;'>🍿 Liane's Discovery</h1>", unsafe_allow_html=True)
     
     try:
@@ -108,7 +110,7 @@ if page == "Dashboard":
         else:
             # --- PROCESSAMENTO DAS CATEGORIAS ---
 
-            # 1. LENDO AGORA (Emprestados)
+            # 1. Emprestados
             # Filtramos os livros que possuem IDs presentes na lista de empréstimos ativos
             ids_ativos = [emp['book_id'] for emp in emprestimos_ativos]
             lista_emprestados = [b for b in todos_livros if b.get('book_id') in ids_ativos]
@@ -134,7 +136,7 @@ if page == "Dashboard":
 
     except Exception as e:
         st.error(f"⚠️ Erro ao carregar o Dashboard Mágico: {e}")
-        
+
 # --- Página 2: AI Smart Assistant ---
 elif page == "🧠 Smart Assistant":
     st.title("🧠 Smart Library Assistant")
