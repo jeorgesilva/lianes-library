@@ -31,39 +31,46 @@ def buscar_livro_openlibrary(isbn):
     return None
 
 def renderizar_carrossel(titulo_secao, lista_livros):
-    """Gera um carrossel horizontal estilo Netflix para uma lista de livros."""
-    st.markdown(f"<h3 style='margin-top: 20px;'>{titulo_secao}</h3>", unsafe_allow_html=True)
+    """Gera um carrossel horizontal estilo Netflix (Dark Mode UI/UX)"""
+    st.markdown(f"<h3 style='margin-top: 10px; margin-bottom: -15px; color: #E2E8F0; font-weight: 600;'>{titulo_secao}</h3>", unsafe_allow_html=True)
     
     if not lista_livros:
         st.info("Ainda não há livros nesta categoria.")
         return
 
-    # Inicia a div do carrossel
-    html_cards = '<div class="netflix-row">'
+    html_cards = '<div class="nx-row">'
     
     for livro in lista_livros:
-        # Pega a capa
         capa = livro.get('cover_url')
-        # IMPORTANTE: Limpamos aspas do título para não quebrar o HTML
         titulo_cru = livro.get('title', 'Desconhecido')
-        titulo_limpo = titulo_cru.replace('"', '&quot;') 
+        titulo_limpo = titulo_cru.replace('"', '&quot;').replace("'", "&#39;")
+        autor = livro.get('author', 'Autor desconhecido')
+        
+        # Simula uma sinopse (se o seu BD não tiver, usamos o autor e um texto genérico para o design)
+        sinopse = f"Uma obra fascinante de {autor}. Explore os mistérios e as lições escondidas nestas páginas."
         
         if capa and str(capa).strip() != "" and capa != "None":
-            img_html = f"<img src='{capa}' class='netflix-cover' alt='{titulo_limpo}'>"
+            img_html = f"<img src='{capa}' class='nx-cover' alt='{titulo_limpo}'>"
         else:
-            # Mostra o título dentro do quadrado cinza se não houver capa
-            img_html = f"<div class='netflix-cover'>Sem Capa<br><small>{titulo_limpo[:20]}...</small></div>"
+            # Placeholder elegante caso falte a capa
+            img_html = f"<div class='nx-cover' style='display:flex; align-items:center; justify-content:center; text-align:center; padding:10px; font-size:0.8rem; color:#A0AEC0;'>{titulo_limpo}</div>"
             
         html_cards += f"""
-            <div class="netflix-card" title="{titulo_limpo}">
+            <div class="nx-card">
                 {img_html}
-                <div class="netflix-title">{titulo_limpo}</div>
+                <div class="nx-overlay">
+                    <div class="nx-title">{titulo_limpo}</div>
+                    <div class="nx-synopsis">{sinopse}</div>
+                    <div class="nx-actions">
+                        <div class="nx-btn" title="Já Li">✔️</div>
+                        <div class="nx-btn" title="Estou Lendo">📖</div>
+                        <div class="nx-btn" title="Lista de Leitura">➕</div>
+                    </div>
+                </div>
             </div>
         """
         
     html_cards += '</div>'
-    
-    # Renderiza tudo de uma vez
     st.markdown(html_cards, unsafe_allow_html=True)
     
 # --- Configurações Básicas ---
