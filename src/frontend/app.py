@@ -31,49 +31,44 @@ def buscar_livro_openlibrary(isbn):
     return None
 
 def renderizar_carrossel(titulo_secao, lista_livros):
-    """Gera um carrossel horizontal contínuo (Row) estilo Netflix"""
-    # Título da seção com ajuste de margem para alinhar com os cards
-    st.markdown(f"<h4 style='margin-bottom: -10px;'>{titulo_secao}</h4>", unsafe_allow_html=True)    
+    """Gera um carrossel horizontal estilo Netflix com cards reduzidos."""
+    # Título da seção
+    st.markdown(f"<h4 style='margin-top: 20px; margin-bottom: -10px; color: #E2E8F0;'>{titulo_secao}</h4>", unsafe_allow_html=True)
+    
     if not lista_livros:
         st.info("Ainda não há livros nesta categoria.")
         return
 
-    # Inicia o container horizontal (nx-row)
-    html_cards = '<div class="nx-row">'
+    # Inicia o container da linha (nx-row)
+    html = '<div class="nx-row">'
     
     for livro in lista_livros:
         capa = livro.get('cover_url')
         titulo_cru = livro.get('title', 'Desconhecido')
-        # Limpeza de caracteres para evitar quebra do atributo HTML
+        # Limpa aspas para não quebrar o HTML
         titulo_limpo = str(titulo_cru).replace('"', '&quot;').replace("'", "&#39;")
         autor = livro.get('author', 'Autor desconhecido')
         
-        sinopse = f"Uma obra de {autor}. Adicionado ao seu acervo digital."
-        
-        # Lógica de exibição da imagem de capa ou placeholder
+        # Define se usa a imagem ou um quadrado cinza (placeholder)
         if capa and str(capa).strip() != "" and capa != "None":
-            img_html = f"<img src='{capa}' class='nx-cover' alt='{titulo_limpo}'>"
+            img_content = f'<img src="{capa}" class="nx-cover" alt="{titulo_limpo}">'
         else:
-            img_html = f"<div class='nx-cover' style='display:flex; align-items:center; justify-content:center; text-align:center; padding:10px; background:#2D3748; color:#A0AEC0; font-size:0.75rem;'>{titulo_limpo}</div>"
+            img_content = f'<div class="nx-cover" style="display:flex; align-items:center; justify-content:center; background:#2D3748; font-size:10px; padding:5px; text-align:center;">{titulo_limpo[:20]}...</div>'
             
-        # IMPORTANTE: Construção da string SEM espaços no início para o Streamlit não interpretar como bloco de código
-        html = '<div class="nx-row">'
-        for livro in lista_livros:
-            capa = livro.get('cover_url', '')
-            titulo = str(livro.get('title', '')).replace("'", " ")
-            
-            img_tag = f'<img src="{capa}" class="nx-cover">' if capa else f'<div class="nx-cover" style="background:#333; display:flex; align-items:center; justify-content:center; font-size:10px; padding:5px;">{titulo[:20]}</div>'
-            
-            html += f'<div class="nx-card">'
-            html += img_tag
-            html += f'<div class="nx-overlay">'
-            html += f'<div style="font-size:10px; font-weight:bold;">{titulo[:30]}</div>'
-            html += '<div style="display:flex; gap:5px; margin-top:10px;"><span>✔️</span><span>📖</span><span>➕</span></div>'
-            html += '</div></div>'
+        # Monta o card (Tudo em uma linha de código para não bugar o Markdown)
+        html += f'<div class="nx-card">'
+        html += f'{img_content}'
+        html += f'<div class="nx-overlay">'
+        html += f'<div class="nx-title" style="font-size: 11px;">{titulo_limpo[:30]}</div>'
+        html += f'<div style="font-size: 9px; color: #CBD5E0; margin-bottom: 8px;">{autor[:20]}</div>'
+        html += f'<div class="nx-actions">'
+        html += f'<span class="nx-btn">✔️</span><span class="nx-btn">📖</span><span class="nx-btn">➕</span>'
+        html += f'</div></div></div>'
         
     # Fecha o container da linha
-        html += '</div>'
-
+    html += '</div>'
+    
+    # Renderiza o HTML final
     st.markdown(html, unsafe_allow_html=True)
 
 # --- Configurações Básicas ---
