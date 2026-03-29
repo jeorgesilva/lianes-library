@@ -32,7 +32,7 @@ def buscar_livro_openlibrary(isbn):
 
 def renderizar_carrossel(titulo_secao, lista_livros):
     """Gera um carrossel horizontal estilo Netflix para uma lista de livros."""
-    st.markdown(f"<h3 style='margin-bottom: 0px;'>{titulo_secao}</h3>", unsafe_allow_html=True)
+    st.markdown(f"<h3 style='margin-top: 20px;'>{titulo_secao}</h3>", unsafe_allow_html=True)
     
     if not lista_livros:
         st.info("Ainda não há livros nesta categoria.")
@@ -42,25 +42,30 @@ def renderizar_carrossel(titulo_secao, lista_livros):
     html_cards = '<div class="netflix-row">'
     
     for livro in lista_livros:
-        # Pega a capa, ou mostra um espaço vazio se não tiver
+        # Pega a capa
         capa = livro.get('cover_url')
-        titulo = livro.get('title', 'Desconhecido')
+        # IMPORTANTE: Limpamos aspas do título para não quebrar o HTML
+        titulo_cru = livro.get('title', 'Desconhecido')
+        titulo_limpo = titulo_cru.replace('"', '&quot;') 
         
-        if capa:
-            img_html = f"<img src='{capa}' class='netflix-cover' alt='{titulo}'>"
+        if capa and str(capa).strip() != "" and capa != "None":
+            img_html = f"<img src='{capa}' class='netflix-cover' alt='{titulo_limpo}'>"
         else:
-            img_html = f"<div class='netflix-cover'>Sem Capa<br>{titulo[:15]}...</div>"
+            # Mostra o título dentro do quadrado cinza se não houver capa
+            img_html = f"<div class='netflix-cover'>Sem Capa<br><small>{titulo_limpo[:20]}...</small></div>"
             
         html_cards += f"""
-            <div class="netflix-card" title="{titulo}">
+            <div class="netflix-card" title="{titulo_limpo}">
                 {img_html}
-                <div class="netflix-title">{titulo}</div>
+                <div class="netflix-title">{titulo_limpo}</div>
             </div>
         """
         
     html_cards += '</div>'
+    
+    # Renderiza tudo de uma vez
     st.markdown(html_cards, unsafe_allow_html=True)
-
+    
 # --- Configurações Básicas ---
 st.set_page_config(page_title="Liane's Smart Library", page_icon="📚", layout="wide")
 
