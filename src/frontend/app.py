@@ -30,6 +30,37 @@ def buscar_livro_openlibrary(isbn):
         st.error(f"Erro ao conectar com a Open Library: {e}")
     return None
 
+def renderizar_carrossel(titulo_secao, lista_livros):
+    """Gera um carrossel horizontal estilo Netflix para uma lista de livros."""
+    st.markdown(f"<h3 style='margin-bottom: 0px;'>{titulo_secao}</h3>", unsafe_allow_html=True)
+    
+    if not lista_livros:
+        st.info("Ainda não há livros nesta categoria.")
+        return
+
+    # Inicia a div do carrossel
+    html_cards = '<div class="netflix-row">'
+    
+    for livro in lista_livros:
+        # Pega a capa, ou mostra um espaço vazio se não tiver
+        capa = livro.get('cover_url')
+        titulo = livro.get('title', 'Desconhecido')
+        
+        if capa:
+            img_html = f"<img src='{capa}' class='netflix-cover' alt='{titulo}'>"
+        else:
+            img_html = f"<div class='netflix-cover'>Sem Capa<br>{titulo[:15]}...</div>"
+            
+        html_cards += f"""
+            <div class="netflix-card" title="{titulo}">
+                {img_html}
+                <div class="netflix-title">{titulo}</div>
+            </div>
+        """
+        
+    html_cards += '</div>'
+    st.markdown(html_cards, unsafe_allow_html=True)
+
 # --- Configurações Básicas ---
 st.set_page_config(page_title="Liane's Smart Library", page_icon="📚", layout="wide")
 
@@ -47,22 +78,42 @@ page = st.sidebar.radio(
 )
 
 # --- Página 1: Dashboard ---
+# --- Página 1: Dashboard (Estilo Netflix) ---
 if page == "Dashboard":
-    st.title("📊 Library Dashboard")
-    st.write("Visão geral dos seus empréstimos ativos.")
+    st.markdown("<h1 style='color: #A855F7;'>🍿 Liane's Discovery</h1>", unsafe_allow_html=True)
     
     try:
-        response = requests.get(f"{API_URL}/loans/active")
-        if response.status_code == 200:
-            loans = response.json()
-            if loans:
-                df = pd.DataFrame(loans)
-                df = df[['transaction_id', 'book_title', 'borrower_name', 'loan_date', 'due_date', 'days_overdue']]
-                st.dataframe(df, use_container_width=True)
-            else:
-                st.success("Nenhum livro emprestado no momento! Todos estão na estante.")
-    except requests.exceptions.ConnectionError:
-        st.error("⚠️ Erro de conexão. Aguarde um momento enquanto o servidor desperta.")
+        # Busca TODOS os livros para podermos filtrar no frontend (Temporário até ter rotas específicas)
+        res_books = requests.get(f"{API_URL}/books/")
+        todos_livros = res_books.json() if res_books.status_code == 200 else []
+        
+        # Busca empréstimos ativos
+        res_loans = requests.get(f"{API_URL}/loans/active")
+        emprestimos_ativos = res_loans.json() if res_loans.status_code == 200 else []
+        
+        # 1. Carrossel: Livros Atualmente Emprestados (Lendo Agora)
+        livros_emprestados_ids = [emp['book_id'] for emp in emprestimos_ativos]
+        lista_emprestados = [b for b in todos_livros if b['book_id'] in livros_emprestados_ids]
+        renderizar_carrossel("⏳ Lendo Agora (Emprestados)", lista_emprestados)
+        
+        # 2. Carrossel: Adicionados Recentemente
+        # Assumindo que os últimos adicionados têm os IDs mais altos
+        lista_recentes = sorted(todos_livros, key=lambda x: x['book_id'], reverse=True)[:10]
+        renderizar_carrossel("✨ Novidades no Acervo", lista_recentes)
+
+        # 3. Carrossel Temático 1 (Busca Semântica simulada por palavra-chave no título/resumo)
+        # O ideal seria usar o endpoint de Vibe Search no backend, mas podemos filtrar aqui para testes!
+        aventura = [b for b in todos_livros if "dragon" in str(b).lower() or "magic" in str(b).lower() or "sword" in str(b).lower()]
+        if aventura:
+            renderizar_carrossel("🐉 Épicos de Fantasia e Magia", aventura)
+            
+        # 4. Carrossel Temático 2
+        sci_fi = [b for b in todos_livros if "space" in str(b).lower() or "science" in str(b).lower() or "star" in str(b).lower()]
+        if sci_fi:
+            renderizar_carrossel("🚀 Viagem no Espaço e Sci-Fi", sci_fi)
+
+    except Exception as e:
+        st.error(f"⚠️ Erro ao carregar o Dashboard Mágico: {e}")
 
 # --- Página 2: AI Smart Assistant ---
 elif page == "🧠 Smart Assistant":
@@ -125,7 +176,6 @@ elif page == "🧠 Smart Assistant":
                     except Exception as e:
                         st.error(f"Erro de conexão com o servidor: {e}")
 
-# --- Página 3: Catálogo de Livros ---
 # --- Página 3: Catálogo de Livros ---
 elif page == "📖 Book Catalog":
     st.title("📖 Catálogo de Livros")
@@ -191,7 +241,8 @@ elif page == "📖 Book Catalog":
                                             "title": livro['title'],
                                             "author": livro['author'],
                                             "isbn": livro['isbn'],
-                                            "cost": 0.0
+                                            "cost": 0.0,
+                                            "cover_url": livro['cover_url']  # <--- ADICIONE ESTA LINHA AQUI!
                                         }
                                         res = requests.post(f"{API_URL}/books/", json=payload)
                                         if res.status_code == 201:
@@ -263,7 +314,6 @@ elif page == "👥 Borrowers":
     except Exception as e:
         st.error(f"Erro ao carregar os amigos: {e}")
 
-# --- Página 5: Empréstimos ---
 # --- Página 5: Empréstimos ---
 elif page == "🔄 Loans":
     st.title("🔄 Controle de Empréstimos")

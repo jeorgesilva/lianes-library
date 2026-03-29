@@ -17,7 +17,8 @@ def create_tables():
         genre VARCHAR(100),
         cost_book DECIMAL(10,2),
         book_status ENUM('AVAILABLE','BORROWED','LOST','DAMAGED') DEFAULT 'AVAILABLE' NOT NULL,
-        date_added DATETIME DEFAULT CURRENT_TIMESTAMP
+        date_added DATETIME DEFAULT CURRENT_TIMESTAMP,
+        cover_url VARCHAR(500) -- 👈 ADICIONE ESTA LINHA AQUI!
     );
     """
     

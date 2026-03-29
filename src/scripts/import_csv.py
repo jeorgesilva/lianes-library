@@ -28,8 +28,8 @@ def importar_livros(caminho_csv):
     
     # Query SQL para inserir na nuvem (Aiven)
     insert_query = text("""
-        INSERT INTO books (title, author, genre, ISBN, book_status)
-        VALUES (:title, :author, :genre, :isbn, :status)
+        INSERT INTO books (title, author, genre, ISBN, book_status, cover_url)
+        VALUES (:title, :author, :genre, :isbn, :status, :cover_url)
     """)
 
     sucesso = 0
@@ -44,9 +44,10 @@ def importar_livros(caminho_csv):
                 conn.execute(insert_query, {
                     "title": str(row['title']),
                     "author": str(row['authors']),
-                    "genre": str(row['language_code']), # Usando o código da língua como gênero temporário
+                    "genre": str(row['language_code']),
                     "isbn": str(row['isbn']),
-                    "status": "AVAILABLE"
+                    "status": "AVAILABLE",
+                    "cover_url": None # Ou o link, se existir no seu CSV
                 })
                 sucesso += 1
                 
