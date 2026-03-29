@@ -53,9 +53,7 @@ def renderizar_carrossel(titulo_secao, lista_livros):
         if capa and str(capa).strip() != "" and capa != "None":
             img_content = f'<img src="{capa}" class="nx-cover" alt="{titulo_limpo}">'
         else:
-            img_content = f'<div class="nx-cover" style="display:flex; align-items:center; justify-content:center; background:#2D3748; font-size:10px; padding:5px; text-align:center;">{titulo_limpo[:20]}...</div>'
-            
-        # Monta o card (Tudo em uma linha de código para não bugar o Markdown)
+            img_content = f'<div class="nx-cover" style="display:flex; align-items:center; justify-content:center; background:#2D3748; font-size:10px; padding:5px; text-align:center;">{titulo_limpo[:20]}...</div>'  
         html += f'<div class="nx-card">'
         html += f'{img_content}'
         html += f'<div class="nx-overlay">'
@@ -63,12 +61,8 @@ def renderizar_carrossel(titulo_secao, lista_livros):
         html += f'<div style="font-size: 9px; color: #CBD5E0; margin-bottom: 8px;">{autor[:20]}</div>'
         html += f'<div class="nx-actions">'
         html += f'<span class="nx-btn">✔️</span><span class="nx-btn">📖</span><span class="nx-btn">➕</span>'
-        html += f'</div></div></div>'
-        
-    # Fecha o container da linha
+        html += f'</div></div></div>'  
     html += '</div>'
-    
-    # Renderiza o HTML final
     st.markdown(html, unsafe_allow_html=True)
 
 # --- Configurações Básicas ---
