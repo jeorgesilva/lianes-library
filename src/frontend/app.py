@@ -31,42 +31,81 @@ def buscar_livro_openlibrary(isbn):
     return None
 
 def renderizar_carrossel(titulo_secao, lista_livros):
-    """Gera um carrossel horizontal estilo Netflix com cards reduzidos."""
-    # Título da seção
-    st.markdown(f"<h4 style='margin-top: 20px; margin-bottom: -10px; color: #E2E8F0;'>{titulo_secao}</h4>", unsafe_allow_html=True)
-    
+    """Gera um carrossel horizontal estilo Netflix com CSS embutido e 'blindado'."""
     if not lista_livros:
-        st.info("Ainda não há livros nesta categoria.")
-        return
+        return # Não mostra nada se a lista estiver vazia
 
-    # Inicia o container da linha (nx-row)
-    html = '<div class="nx-row">'
+    # 1. O CSS fixo e reduzido (30% menor) injetado diretamente aqui
+    estilo_fixo = """
+    <style>
+        .nx-row {
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            overflow-x: auto !important;
+            gap: 12px !important;
+            padding: 20px 0 !important;
+            width: 100% !important;
+        }
+        .nx-row::-webkit-scrollbar { display: none !important; }
+        
+        .nx-card {
+            position: relative !important;
+            flex: 0 0 110px !important; /* Largura bem pequena e fixa */
+            width: 110px !important;
+            height: 165px !important;    /* Proporção vertical */
+            background: #1A202C !important;
+            border-radius: 4px !important;
+            cursor: pointer !important;
+            transition: transform 0.3s !important;
+            z-index: 1 !important;
+        }
+        .nx-card:hover { transform: scale(1.1) !important; z-index: 10 !important; }
+        
+        .nx-cover {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            border-radius: 4px !important;
+        }
+        
+        .nx-overlay {
+            position: absolute !important;
+            bottom: 0; left: 0; right: 0; top: 0;
+            background: rgba(0,0,0,0.8) !important;
+            opacity: 0 !important;
+            transition: opacity 0.3s !important;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            padding: 5px; text-align: center;
+        }
+        .nx-card:hover .nx-overlay { opacity: 1 !important; }
+    </style>
+    """
+    
+    # 2. Construção do Título e da Linha
+    st.markdown(f"{estilo_fixo}<h4 style='margin-bottom: -10px;'>{titulo_secao}</h4>", unsafe_allow_html=True)
+    
+    html_final = '<div class="nx-row">'
     
     for livro in lista_livros:
-        capa = livro.get('cover_url')
-        titulo_cru = livro.get('title', 'Desconhecido')
-        # Limpa aspas para não quebrar o HTML
-        titulo_limpo = str(titulo_cru).replace('"', '&quot;').replace("'", "&#39;")
-        autor = livro.get('author', 'Autor desconhecido')
+        capa = livro.get('cover_url', '')
+        titulo = str(livro.get('title', 'Sem Título')).replace("'", " ")
         
-        # Define se usa a imagem ou um quadrado cinza (placeholder)
-        if capa and str(capa).strip() != "" and capa != "None":
-            img_content = f'<img src="{capa}" class="nx-cover" alt="{titulo_limpo}">'
+        # Define se mostra imagem ou fundo escuro com texto
+        if capa and str(capa) != "None":
+            conteudo = f'<img src="{capa}" class="nx-cover">'
         else:
-            img_content = f'<div class="nx-cover" style="display:flex; align-items:center; justify-content:center; background:#2D3748; font-size:10px; padding:5px; text-align:center;">{titulo_limpo[:20]}...</div>'  
-        html += f'<div class="nx-card">'
-        html += f'{img_content}'
-        html += f'<div class="nx-overlay">'
-        html += f'<div class="nx-title" style="font-size: 11px;">{titulo_limpo[:30]}</div>'
-        html += f'<div style="font-size: 9px; color: #CBD5E0; margin-bottom: 8px;">{autor[:20]}</div>'
-        html += f'<div class="nx-actions">'
-        html += f'<span class="nx-btn">✔️</span><span class="nx-btn">📖</span><span class="nx-btn">➕</span>'
-        html += f'</div></div></div>'  
-    html += '</div>'
-    st.markdown(html, unsafe_allow_html=True)
-
-# --- Configurações Básicas ---
-st.set_page_config(page_title="Liane's Smart Library", page_icon="📚", layout="wide")
+            conteudo = f'<div class="nx-cover" style="display:flex;align-items:center;justify-content:center;background:#2D3748;font-size:8px;padding:5px;">{titulo[:15]}</div>'
+        
+        # Monta o card em uma única string sem espaços (CRÍTICO)
+        card_html = f'<div class="nx-card">{conteudo}<div class="nx-overlay"><div style="color:white;font-size:9px;font-weight:bold;">{titulo[:25]}</div><div style="font-size:10px;margin-top:5px;">✔️ 📖 ➕</div></div></div>'
+        html_final += card_html
+        
+    html_final += '</div>'
+    
+    # 3. Renderiza tudo de uma vez
+    st.markdown(html_final, unsafe_allow_html=True)
 
 # Aplica o CSS Premium
 apply_styles()
