@@ -33,8 +33,7 @@ def buscar_livro_openlibrary(isbn):
 def renderizar_carrossel(titulo_secao, lista_livros):
     """Gera um carrossel horizontal contínuo (Row) estilo Netflix"""
     # Título da seção com ajuste de margem para alinhar com os cards
-    st.markdown(f"<h3 style='margin-top: 25px; margin-bottom: -10px; color: #E2E8F0; font-weight: 600; font-size: 1.2rem;'>{titulo_secao}</h3>", unsafe_allow_html=True)
-    
+    st.markdown(f"<h4 style='margin-bottom: -10px;'>{titulo_secao}</h4>", unsafe_allow_html=True)    
     if not lista_livros:
         st.info("Ainda não há livros nesta categoria.")
         return
@@ -58,22 +57,24 @@ def renderizar_carrossel(titulo_secao, lista_livros):
             img_html = f"<div class='nx-cover' style='display:flex; align-items:center; justify-content:center; text-align:center; padding:10px; background:#2D3748; color:#A0AEC0; font-size:0.75rem;'>{titulo_limpo}</div>"
             
         # IMPORTANTE: Construção da string SEM espaços no início para o Streamlit não interpretar como bloco de código
-        html_cards += f"<div class='nx-card'>"
-        html_cards += f"{img_html}"
-        html_cards += f"<div class='nx-overlay'>"
-        html_cards += f"<div class='nx-title'>{titulo_limpo}</div>"
-        html_cards += f"<div class='nx-synopsis'>{sinopse}</div>"
-        html_cards += f"<div class='nx-actions'>"
-        html_cards += f"<div class='nx-btn' title='Já Li'>✔️</div>"
-        html_cards += f"<div class='nx-btn' title='Estou Lendo'>📖</div>"
-        html_cards += f"<div class='nx-btn' title='Lista de Leitura'>➕</div>"
-        html_cards += f"</div></div></div>"
+        html = '<div class="nx-row">'
+        for livro in lista_livros:
+            capa = livro.get('cover_url', '')
+            titulo = str(livro.get('title', '')).replace("'", " ")
+            
+            img_tag = f'<img src="{capa}" class="nx-cover">' if capa else f'<div class="nx-cover" style="background:#333; display:flex; align-items:center; justify-content:center; font-size:10px; padding:5px;">{titulo[:20]}</div>'
+            
+            html += f'<div class="nx-card">'
+            html += img_tag
+            html += f'<div class="nx-overlay">'
+            html += f'<div style="font-size:10px; font-weight:bold;">{titulo[:30]}</div>'
+            html += '<div style="display:flex; gap:5px; margin-top:10px;"><span>✔️</span><span>📖</span><span>➕</span></div>'
+            html += '</div></div>'
         
     # Fecha o container da linha
-    html_cards += '</div>'
-    
-    # Renderização final injetando o HTML/CSS
-    st.markdown(html_cards, unsafe_allow_html=True)
+        html += '</div>'
+
+    st.markdown(html, unsafe_allow_html=True)
 
 # --- Configurações Básicas ---
 st.set_page_config(page_title="Liane's Smart Library", page_icon="📚", layout="wide")
