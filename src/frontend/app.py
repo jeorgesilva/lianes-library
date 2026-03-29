@@ -31,29 +31,33 @@ def buscar_livro_openlibrary(isbn):
     return None
 
 def renderizar_carrossel(titulo_secao, lista_livros):
-    """Gera um carrossel horizontal estilo Netflix (Dark Mode UI/UX)"""
-    st.markdown(f"<h3 style='margin-top: 10px; margin-bottom: -15px; color: #E2E8F0; font-weight: 600;'>{titulo_secao}</h3>", unsafe_allow_html=True)
+    """Gera um carrossel horizontal contínuo (Row) estilo Netflix"""
+    # Título da seção com ajuste de margem para alinhar com os cards
+    st.markdown(f"<h3 style='margin-top: 25px; margin-bottom: -10px; color: #E2E8F0; font-weight: 600; font-size: 1.2rem;'>{titulo_secao}</h3>", unsafe_allow_html=True)
     
     if not lista_livros:
         st.info("Ainda não há livros nesta categoria.")
         return
 
+    # Inicia o container horizontal (nx-row)
     html_cards = '<div class="nx-row">'
     
     for livro in lista_livros:
         capa = livro.get('cover_url')
         titulo_cru = livro.get('title', 'Desconhecido')
-        titulo_limpo = titulo_cru.replace('"', '&quot;').replace("'", "&#39;")
+        # Limpeza de caracteres para evitar quebra do atributo HTML
+        titulo_limpo = str(titulo_cru).replace('"', '&quot;').replace("'", "&#39;")
         autor = livro.get('author', 'Autor desconhecido')
         
-        sinopse = f"Uma obra fascinante de {autor}. Explore os mistérios e as lições escondidas nestas páginas."
+        sinopse = f"Uma obra de {autor}. Adicionado ao seu acervo digital."
         
+        # Lógica de exibição da imagem de capa ou placeholder
         if capa and str(capa).strip() != "" and capa != "None":
             img_html = f"<img src='{capa}' class='nx-cover' alt='{titulo_limpo}'>"
         else:
-            img_html = f"<div class='nx-cover' style='display:flex; align-items:center; justify-content:center; text-align:center; padding:10px; font-size:0.8rem; color:#A0AEC0;'>{titulo_limpo}</div>"
+            img_html = f"<div class='nx-cover' style='display:flex; align-items:center; justify-content:center; text-align:center; padding:10px; background:#2D3748; color:#A0AEC0; font-size:0.75rem;'>{titulo_limpo}</div>"
             
-        # AQUI ESTÁ A CORREÇÃO: Construímos a string sem espaços no início das linhas!
+        # IMPORTANTE: Construção da string SEM espaços no início para o Streamlit não interpretar como bloco de código
         html_cards += f"<div class='nx-card'>"
         html_cards += f"{img_html}"
         html_cards += f"<div class='nx-overlay'>"
@@ -65,11 +69,12 @@ def renderizar_carrossel(titulo_secao, lista_livros):
         html_cards += f"<div class='nx-btn' title='Lista de Leitura'>➕</div>"
         html_cards += f"</div></div></div>"
         
+    # Fecha o container da linha
     html_cards += '</div>'
     
-    # Injeta o HTML garantindo que não há recuos de Markdown
+    # Renderização final injetando o HTML/CSS
     st.markdown(html_cards, unsafe_allow_html=True)
-    
+
 # --- Configurações Básicas ---
 st.set_page_config(page_title="Liane's Smart Library", page_icon="📚", layout="wide")
 
@@ -87,43 +92,49 @@ page = st.sidebar.radio(
 )
 
 # --- Página 1: Dashboard ---
-# --- Página 1: Dashboard (Estilo Netflix) ---
 if page == "Dashboard":
-    st.markdown("<h1 style='color: #A855F7;'>🍿 Liane's Discovery</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='color: #A855F7; margin-bottom: 20px;'>🍿 Liane's Discovery</h1>", unsafe_allow_html=True)
     
     try:
-        # Busca TODOS os livros para podermos filtrar no frontend (Temporário até ter rotas específicas)
+        # 1. Busca os dados da API (Centralizado aqui para evitar erros)
         res_books = requests.get(f"{API_URL}/books/")
         todos_livros = res_books.json() if res_books.status_code == 200 else []
         
-        # Busca empréstimos ativos
         res_loans = requests.get(f"{API_URL}/loans/active")
         emprestimos_ativos = res_loans.json() if res_loans.status_code == 200 else []
-        
-        # 1. Carrossel: Livros Atualmente Emprestados (Lendo Agora)
-        livros_emprestados_ids = [emp['book_id'] for emp in emprestimos_ativos]
-        lista_emprestados = [b for b in todos_livros if b['book_id'] in livros_emprestados_ids]
-        renderizar_carrossel("⏳ Lendo Agora (Emprestados)", lista_emprestados)
-        
-        # 2. Carrossel: Adicionados Recentemente
-        # Assumindo que os últimos adicionados têm os IDs mais altos
-        lista_recentes = sorted(todos_livros, key=lambda x: x['book_id'], reverse=True)[:10]
-        renderizar_carrossel("✨ Novidades no Acervo", lista_recentes)
 
-        # 3. Carrossel Temático 1 (Busca Semântica simulada por palavra-chave no título/resumo)
-        # O ideal seria usar o endpoint de Vibe Search no backend, mas podemos filtrar aqui para testes!
-        aventura = [b for b in todos_livros if "dragon" in str(b).lower() or "magic" in str(b).lower() or "sword" in str(b).lower()]
-        if aventura:
-            renderizar_carrossel("🐉 Épicos de Fantasia e Magia", aventura)
+        if not todos_livros:
+            st.warning("📭 O seu acervo está vazio. Que tal escanear alguns livros no 'Book Catalog'?")
+        else:
+            # --- PROCESSAMENTO DAS CATEGORIAS ---
+
+            # 1. LENDO AGORA (Emprestados)
+            # Filtramos os livros que possuem IDs presentes na lista de empréstimos ativos
+            ids_ativos = [emp['book_id'] for emp in emprestimos_ativos]
+            lista_emprestados = [b for b in todos_livros if b.get('book_id') in ids_ativos]
+            if lista_emprestados:
+                renderizar_carrossel("⏳ Lendo Agora (Emprestados)", lista_emprestados)
+
+            # 2. NOVIDADES NO ACERVO (Últimos 10 adicionados)
+            lista_recentes = sorted(todos_livros, key=lambda x: x.get('book_id', 0), reverse=True)[:10]
+            renderizar_carrossel("✨ Novidades no Acervo", lista_recentes)
+
+            # 3. FANTASIA E MAGIA (Filtro por palavra-chave)
+            fantasia = [b for b in todos_livros if any(word in str(b).lower() for word in ["dragon", "magic", "potter", "bruxo", "lenda"])]
+            if fantasia:
+                renderizar_carrossel("🐉 Épicos de Fantasia e Magia", fantasia)
+
+            # 4. SCI-FI E ESPAÇO
+            sci_fi = [b for b in todos_livros if any(word in str(b).lower() for word in ["space", "science", "star", "robot", "futuro"])]
+            if sci_fi:
+                renderizar_carrossel("🚀 Viagem no Espaço e Sci-Fi", sci_fi)
             
-        # 4. Carrossel Temático 2
-        sci_fi = [b for b in todos_livros if "space" in str(b).lower() or "science" in str(b).lower() or "star" in str(b).lower()]
-        if sci_fi:
-            renderizar_carrossel("🚀 Viagem no Espaço e Sci-Fi", sci_fi)
+            # 5. TODO O ACERVO (Para garantir que tudo aparece)
+            renderizar_carrossel("📚 Explore toda a Biblioteca", todos_livros)
 
     except Exception as e:
         st.error(f"⚠️ Erro ao carregar o Dashboard Mágico: {e}")
-
+        
 # --- Página 2: AI Smart Assistant ---
 elif page == "🧠 Smart Assistant":
     st.title("🧠 Smart Library Assistant")

@@ -9,129 +9,108 @@ def apply_styles():
             font-family: 'Inter', sans-serif;
         }
 
-        .book-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 15px;
-            transition: all 0.3s ease;
-        }
-        
-        .book-card:hover {
-            border-color: #8B5CF6;
-            background: rgba(139, 92, 246, 0.05);
-            transform: translateY(-2px);
-        }
+        /* ... Seus estilos anteriores (book-card, match-tag) permanecem iguais ... */
 
-        .match-tag {
-            background: #8B5CF6;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-        /* --- ESTILOS NETFLIX PREMIUM (Dark Mode & Hover Overlay) --- */
+        /* --- ESTILOS NETFLIX PREMIUM (Ajustados para Row Horizontal) --- */
         .nx-row {
             display: flex;
-            overflow-x: auto;
-            overflow-y: hidden;
-            gap: 15px;
-            /* Padding generoso para a imagem não ser cortada quando crescer */
-            padding: 40px 10px 40px 10px; 
+            flex-direction: row;      /* Força direção em linha */
+            flex-wrap: nowrap;        /* CRÍTICO: Impede que os livros desçam para a próxima linha */
+            overflow-x: auto;         /* Ativa o scroll lateral quando necessário */
+            overflow-y: hidden;       /* Esconde o scroll vertical */
+            gap: 20px;                /* Espaço maior entre as capas */
+            padding: 40px 10px;       /* Espaço para o efeito de escala (zoom) não cortar */
             scroll-behavior: smooth;
+            width: 100%;
         }
         
-        .nx-row::-webkit-scrollbar { display: none; } /* Esconde a scrollbar */
+        /* Esconde a barra de rolagem para um visual limpo */
+        .nx-row::-webkit-scrollbar { display: none; } 
+        .nx-row { -ms-overflow-style: none; scrollbar-width: none; }
         
         .nx-card {
             position: relative;
-            flex: 0 0 auto;
-            width: 160px;
-            height: 240px;
-            border-radius: 8px;
+            flex: 0 0 auto;           /* CRÍTICO: Impede que o card encolha. Mantém o tamanho fixo. */
+            width: 180px;             /* Largura um pouco maior para parecer com a imagem */
+            height: 270px;            /* Mantém proporção 2:3 */
+            border-radius: 4px;       /* Cantos levemente arredondados como na imagem */
             cursor: pointer;
-            transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), z-index 0.4s;
+            transition: transform 0.4s ease, z-index 0.4s;
             z-index: 1;
-            background-color: #2D3748;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            background-color: #1A202C;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
         
-        /* A Mágica do Hover: Cresce 20%, vem para a frente e ganha sombra profunda */
         .nx-card:hover {
-            transform: scale(1.25);
+            transform: scale(1.15);   /* Zoom elegante */
             z-index: 10;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.9);
         }
         
         .nx-cover {
             width: 100%;
             height: 100%;
-            border-radius: 8px;
-            object-fit: cover;
+            border-radius: 4px;
+            object-fit: cover;        /* Garante que a capa preencha o card sem distorcer */
+            display: block;
         }
 
-        /* Overlay Gradiente (Escondido por padrão) */
+        /* Overlay Gradiente */
         .nx-overlay {
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
-            height: 65%; /* Ocupa a parte de baixo da capa */
-            background: linear-gradient(to top, rgba(15, 15, 15, 0.95) 0%, rgba(15, 15, 15, 0.8) 40%, transparent 100%);
-            border-radius: 0 0 8px 8px;
+            height: 70%; 
+            background: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.8) 40%, transparent 100%);
+            border-radius: 0 0 4px 4px;
             opacity: 0;
-            transition: opacity 0.4s ease;
+            transition: opacity 0.3s ease;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
-            padding: 12px;
+            padding: 15px;
             color: #FFFFFF;
         }
 
         .nx-card:hover .nx-overlay {
-            opacity: 1; /* Aparece no Hover */
+            opacity: 1;
         }
 
         .nx-title {
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             font-weight: 700;
-            margin-bottom: 4px;
-            line-height: 1.1;
-            text-shadow: 1px 1px 2px black;
+            margin-bottom: 5px;
+            line-height: 1.2;
         }
 
         .nx-synopsis {
-            font-size: 0.65rem;
-            color: #D1D5DB;
-            line-height: 1.3;
-            margin-bottom: 10px;
-            /* Trunca o texto em 3 linhas */
+            font-size: 0.7rem;
+            color: #CBD5E0;
+            line-height: 1.4;
+            margin-bottom: 12px;
             display: -webkit-box;
             -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
 
-        /* Barra de Ações (Botões minimalistas) */
         .nx-actions {
             display: flex;
-            gap: 8px;
+            gap: 10px;
         }
 
         .nx-btn {
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
-            width: 28px;
-            height: 28px;
+            width: 32px;
+            height: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.8rem;
-            color: white;
-            transition: background 0.2s, transform 0.2s;
+            font-size: 0.9rem;
+            transition: all 0.2s;
         }
 
         .nx-btn:hover {
