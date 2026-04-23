@@ -27,7 +27,7 @@ def buscar_livro_openlibrary(isbn):
                 cover_url = book_info.get("cover", {}).get("large")
                 return {"title": title, "author": author, "isbn": isbn, "cover_url": cover_url}
     except Exception as e:
-        st.error(f"Erro ao conectar com a Open Library: {e}")
+        st.error(f"Error: {e}")
     return None
 
 # --- Function for rendering a horizontal book carousel ---
