@@ -121,7 +121,7 @@ page = st.sidebar.radio(
     ["Dashboard", "🧠 Smart Assistant", "📖 Book Catalog", "👥 Borrowers", "🔄 Loans"]
 )
 
-# --- Página 1: Dashboard ---
+# --- Page 1: Dashboard ---
 if page == "Dashboard":
     from src.ui.styles import apply_styles
     apply_styles()
@@ -136,50 +136,50 @@ if page == "Dashboard":
         emprestimos_ativos = res_loans.json() if res_loans.status_code == 200 else []
 
         if not todos_livros:
-            st.warning("📭 O seu acervo está vazio. Que tal escanear alguns livros no 'Book Catalog'?")
+            st.warning("📭 your shelf is empty. Want to scan some books in the 'Book Catalog'?")
         else:
-            # --- PROCESSAMENTO DAS CATEGORIAS ---
+            # --- Processing Categories ---
 
-            # 1. Emprestados
-            # Filtramos os livros que possuem IDs presentes na lista de empréstimos ativos
+            # 1. borrowed books (those that have active loans)
+            # Filter the list of all books to find which ones are currently borrowed based on active loans
             ids_ativos = [emp['book_id'] for emp in emprestimos_ativos]
             lista_emprestados = [b for b in todos_livros if b.get('book_id') in ids_ativos]
             if lista_emprestados:
-                renderizar_carrossel("⏳ Lendo Agora (Emprestados)", lista_emprestados)
+                renderizar_carrossel("⏳ Lent", lista_emprestados)
 
-            # 2. NOVIDADES NO ACERVO (Últimos 10 adicionados)
+            # 2. New book (last 10 added based on book_id, assuming it's incremental)
             lista_recentes = sorted(todos_livros, key=lambda x: x.get('book_id', 0), reverse=True)[:10]
-            renderizar_carrossel("✨ Novidades no Acervo", lista_recentes)
+            renderizar_carrossel("✨ New Arrivals", lista_recentes)
 
-            # 3. FANTASIA E MAGIA (Filtro por palavra-chave)
+            # 3. Fantasie (filters books that have fantasy-related keywords in the title or author)
             fantasia = [b for b in todos_livros if any(word in str(b).lower() for word in ["dragon", "magic", "potter", "bruxo", "lenda"])]
             if fantasia:
-                renderizar_carrossel("🐉 Épicos de Fantasia e Magia", fantasia)
+                renderizar_carrossel("🐉 Epic fantasy", fantasia)
 
             # 4. SCI-FI E ESPAÇO
             sci_fi = [b for b in todos_livros if any(word in str(b).lower() for word in ["space", "science", "star", "robot", "futuro"])]
             if sci_fi:
-                renderizar_carrossel("🚀 Viagem no Espaço e Sci-Fi", sci_fi)
+                renderizar_carrossel("🚀 Space Travel and Sci-Fi", sci_fi)
             
             # 5. TODO O ACERVO (Para garantir que tudo aparece)
-            renderizar_carrossel("📚 Explore toda a Biblioteca", todos_livros)
+            renderizar_carrossel("📚 Explore the whole library", todos_livros)
 
     except Exception as e:
-        st.error(f"⚠️ Erro ao carregar o Dashboard Mágico: {e}")
+        st.error(f"⚠️ error loading the Dashboard: {e}")
 
 # --- Página 2: AI Smart Assistant ---
 elif page == "🧠 Smart Assistant":
     st.title("🧠 Smart Library Assistant")
-    st.write("Use a Inteligência Artificial para explorar o seu acervo.")
+    st.write("Use the power of AI to find books that match your vibe or ask the librarian anything about your collection!")
     
     tab1, tab2 = st.tabs(["✨ Vibe Search", "💬 Chat with Librarian"])
     
     with tab1:
-        st.markdown("### Encontre um livro pela *Vibe*")
-        query = st.text_input("Descreva o que você quer ler hoje:")
-        if st.button("Buscar por Vibe"):
+        st.markdown("### Find a book by *Vibe*")
+        query = st.text_input("Describe what you want to read today:")
+        if st.button("Search by Vibe"):
             if query:
-                with st.spinner("Analisando as vibes do seu acervo..."):
+                with st.spinner("Analyzing the vibes of your collection..."):
                     try:
                         res = requests.get(f"{API_URL}/search/vibe", params={"q": query, "limit": 3})
                         if res.status_code == 200:
@@ -197,71 +197,71 @@ elif page == "🧠 Smart Assistant":
                                         </div>
                                     """, unsafe_allow_html=True)
                             else:
-                                st.warning("Nenhum livro combinou com essa vibe.")
+                                st.warning("No books matched that vibe.")
                         else:
-                            st.error(f"Erro na busca: {res.text}")
+                            st.error(f"Error in search: {res.text}")
                     except Exception as e:
-                        st.error(f"Erro de conexão com o servidor: {e}")
-    
+                        st.error(f"Connection error with the server: {e}")
+
     with tab2:
-        st.markdown("### Fale com a Bibliotecária Virtual")
+        st.markdown("### Chat with the Virtual Librarian")
         if "messages" not in st.session_state:
             st.session_state.messages = []
         for message in st.session_state.messages:
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
 
-        if prompt := st.chat_input("Pergunte algo (ex: Tem livros de aventura?)"):
+        if prompt := st.chat_input("Ask something (e.g., Do you have adventure books?)"):
             st.session_state.messages.append({"role": "user", "content": prompt})
             with st.chat_message("user"):
                 st.markdown(prompt)
             with st.chat_message("assistant"):
-                with st.spinner("Pensando..."):
+                with st.spinner("Thinking..."):
                     try:
                         res = requests.post(f"{API_URL}/chat/", json={"message": prompt})
                         if res.status_code == 200:
-                            reply = res.json().get("reply", "Desculpe, não entendi.")
+                            reply = res.json().get("reply", "Sorry, I didn't understand that.")
                             st.markdown(reply)
                             st.session_state.messages.append({"role": "assistant", "content": reply})
                         else:
-                            st.error(f"Erro ao conectar com o LLM: {res.text}")
+                            st.error(f"Error connecting to the LLM: {res.text}")
                     except Exception as e:
-                        st.error(f"Erro de conexão com o servidor: {e}")
+                        st.error(f"Error connecting to the server: {e}")
 
 # --- Página 3: Catálogo de Livros ---
 elif page == "📖 Book Catalog":
-    st.title("📖 Catálogo de Livros")
+    st.title("📖 Book Catalog")
     
     # Substituímos as Tabs por um Radio horizontal para garantir que a câmera desligue
     modo = st.radio(
-        "Escolha o método de adição:", 
-        ["📷 Scan Inteligente", "✍️ Adicionar Manualmente"], 
+        "Choose the addition method:", 
+        ["📷 Smart Scan", "✍️ Add Manually"], 
         horizontal=True
     )
     
     # --- MODO 1: SCAN INTELIGENTE ---
-    if modo == "📷 Scan Inteligente":
-        st.markdown("### Escanear Código de Barras (ISBN)")
+    if modo == "📷 Smart Scan":
+        st.markdown("### Scan (ISBN)")
         
         # Controle de estado da câmera (Liga/Desliga)
-        if "camera_ligada" not in st.session_state:
-            st.session_state.camera_ligada = False
+        if "camera on" not in st.session_state:
+            st.session_state["camera on"] = False
 
         # Botões para controlar a câmera
-        if not st.session_state.camera_ligada:
-            if st.button("📸 Ligar Câmera", type="primary"):
-                st.session_state.camera_ligada = True
+        if not st.session_state["camera on"]:
+            if st.button("📸 turn camera on", type="primary"):
+                st.session_state["camera on"] = True
                 st.rerun() # Recarrega a página para mostrar a câmera
         else:
-            if st.button("❌ Desligar Câmera"):
-                st.session_state.camera_ligada = False
+            if st.button("❌ turn camera off"):
+                st.session_state["camera on"] = False
                 st.rerun() # Recarrega a página para esconder a câmera
 
             # A câmera SÓ aparece se o botão "Ligar Câmera" foi clicado
-            foto = st.camera_input("Aponte para o código de barras na contracapa")
+            foto = st.camera_input("Point to the book's barcode")
             
             if foto:
-                with st.spinner("Analisando a imagem..."):
+                with st.spinner("Reading..."):
                     imagem = Image.open(foto)
                     codigos = decode(imagem)
                     
@@ -270,25 +270,25 @@ elif page == "📖 Book Catalog":
                         st.success(f"✅ Código lido: **{isbn_lido}**")
                         
                         # Opcional: Desligar a câmera automaticamente após ler o código com sucesso
-                        # st.session_state.camera_ligada = False 
+                        # st.session_state["camera on"] = False 
                         
-                        with st.spinner("Buscando dados na Open Library..."):
+                        with st.spinner("Looking up the book in Open Library..."):
                             livro = buscar_livro_openlibrary(isbn_lido)
                             
                             if livro:
                                 col1, col2 = st.columns([1, 2])
                                 with col1:
                                     if livro['cover_url']:
-                                        st.image(livro['cover_url'], use_container_width=True, caption="Capa Encontrada")
+                                        st.image(livro['cover_url'], use_container_width=True, caption="Cover Image")
                                     else:
-                                        st.info("Sem imagem de capa disponível.")
+                                        st.info("No cover image available.")
                                 
                                 with col2:
                                     st.markdown(f"### {livro['title']}")
-                                    st.markdown(f"**Autor:** {livro['author']}")
+                                    st.markdown(f"**Author:** {livro['author']}")
                                     st.markdown(f"**ISBN:** {livro['isbn']}")
                                     
-                                    if st.button("➕ Salvar Livro no Acervo", type="primary"):
+                                    if st.button("➕ Save to Collection", type="primary"):
                                         payload = {
                                             "title": livro['title'],
                                             "author": livro['author'],
@@ -298,38 +298,38 @@ elif page == "📖 Book Catalog":
                                         }
                                         res = requests.post(f"{API_URL}/books/", json=payload)
                                         if res.status_code == 201:
-                                            st.success(f"O livro '{livro['title']}' foi adicionado com sucesso!")
-                                            st.session_state.camera_ligada = False # Desliga a câmera após salvar
+                                            st.success(f"The book '{livro['title']}' was added successfully!")
+                                            st.session_state["camera on"] = False # Turns off the camera after saving
                                         else:
-                                            st.error("Erro ao salvar no banco de dados.")
+                                            st.error("Error saving to the database.")
                             else:
-                                st.warning("O código de barras foi lido, mas o livro não está na base da Open Library.")
+                                st.warning("The barcode was read, but the book is not in the Open Library database.")
                     else:
-                        st.error("Nenhum código de barras detectado. Tente focar melhor e garanta boa iluminação!")
+                        st.error("No barcode detected. Try focusing better and ensure good lighting!")
 
     # --- MODO 2: ADICIONAR MANUALMENTE ---
-    elif modo == "✍️ Adicionar Manualmente":
+    elif modo == "✍️ Add Manually":
         # Garante que a câmera seja esquecida ao mudar de aba
-        st.session_state.camera_ligada = False 
+        st.session_state["camera on"] = False 
         
-        st.markdown("### Digitação Manual")
+        st.markdown("### Manual Entry")
         with st.form("new_book_form"):
             col1, col2 = st.columns(2)
-            title = col1.text_input("Título *")
-            author = col2.text_input("Autor *")
+            title = col1.text_input("Title *")
+            author = col2.text_input("Author *")
             isbn = col1.text_input("ISBN")
-            cost = col2.number_input("Custo (opcional)", min_value=0.0, step=0.1)
+            cost = col2.number_input("Cost (optional)", min_value=0.0, step=0.1)
             
-            if st.form_submit_button("Salvar Livro"):
+            if st.form_submit_button("Save Book"):
                 res = requests.post(f"{API_URL}/books/", json={"title": title, "author": author, "isbn": isbn, "cost": cost})
                 if res.status_code == 201:
-                    st.success(f"Livro '{title}' adicionado!")
+                    st.success(f"Book '{title}' added!")
                 else:
-                    st.error("Erro ao adicionar livro.")
+                    st.error("Error adding book.")
 
     # --- LISTA DO ACERVO ---
     st.markdown("---")
-    st.markdown("### Acervo Atual")
+    st.markdown("### Current Collection")
     try:
         res = requests.get(f"{API_URL}/books/")
         if res.status_code == 200:
@@ -337,26 +337,26 @@ elif page == "📖 Book Catalog":
             if books:
                 st.dataframe(pd.DataFrame(books)[['book_id', 'title', 'author', 'book_status']], use_container_width=True)
     except Exception as e:
-        st.error(f"Erro ao carregar o catálogo: {e}")
+        st.error(f"Error loading the catalog: {e}")
 
 # --- Página 4: Mutuários (Amigos) ---
 elif page == "👥 Borrowers":
-    st.title("👥 Meus Amigos (Mutuários)")
-    with st.expander("➕ Adicionar Novo Amigo"):
+    st.title("👥 Contact List")
+    with st.expander("➕ Add New Borrower"):
         with st.form("new_borrower_form"):
             col1, col2 = st.columns(2)
-            fname = col1.text_input("Primeiro Nome *")
-            lname = col2.text_input("Sobrenome *")
+            fname = col1.text_input("First Name *")
+            lname = col2.text_input("Last Name *")
             email = col1.text_input("Email")
-            phone = col2.text_input("Telefone")
-            if st.form_submit_button("Salvar Amigo"):
+            phone = col2.text_input("Phone")
+            if st.form_submit_button("Save Borrower"):
                 res = requests.post(f"{API_URL}/borrowers/", json={"first_name": fname, "last_name": lname, "email": email, "phone_number": phone})
                 if res.status_code == 201:
-                    st.success("Amigo adicionado com sucesso!")
+                    st.success("Borrower added successfully!")
                 else:
-                    st.error("Erro ao adicionar amigo.")
+                    st.error("Error adding borrower.")
 
-    st.markdown("### Lista de Amigos")
+    st.markdown("### Borrower List")
     try:
         res = requests.get(f"{API_URL}/borrowers/")
         if res.status_code == 200:
@@ -364,11 +364,11 @@ elif page == "👥 Borrowers":
             if borrowers:
                 st.dataframe(pd.DataFrame(borrowers)[['person_id', 'first_name', 'last_name', 'status']], use_container_width=True)
     except Exception as e:
-        st.error(f"Erro ao carregar os amigos: {e}")
+        st.error(f"Error loading the borrower list: {e}")
 
 # --- Página 5: Empréstimos ---
 elif page == "🔄 Loans":
-    st.title("🔄 Controle de Empréstimos")
+    st.title("🔄 Loan Management")
     
     # Busca dados em tempo real para traduzir IDs em Nomes e ISBNs
     books_list, friends_list, active_loans = [], [], []
@@ -377,7 +377,7 @@ elif page == "🔄 Loans":
         friends_list = requests.get(f"{API_URL}/borrowers/").json()
         active_loans = requests.get(f"{API_URL}/loans/active").json()
     except:
-        st.warning("Aviso: Falha ao carregar alguns dados do servidor.")
+        st.warning("Warning: Failed to load some data from the server.")
 
     col1, col2 = st.columns(2)
     
@@ -385,43 +385,43 @@ elif page == "🔄 Loans":
     # 📤 COLUNA 1: EMPRESTAR LIVRO (CHECKOUT)
     # ==========================================
     with col1:
-        st.subheader("📤 Emprestar (Checkout)")
+        st.subheader("📤 Loan")
         
         # Controle da Câmera de Empréstimo
         if "cam_checkout" not in st.session_state: st.session_state.cam_checkout = False
         if "isbn_checkout" not in st.session_state: st.session_state.isbn_checkout = ""
 
         if not st.session_state.cam_checkout:
-            if st.button("📸 Escanear Livro", key="btn_cam_out"):
+            if st.button("📸 Scan Book", key="btn_cam_out"):
                 st.session_state.cam_checkout = True
                 st.rerun()
         else:
-            if st.button("❌ Desligar Câmera", key="btn_close_out"):
+            if st.button("❌ Turn Off Camera", key="btn_close_out"):
                 st.session_state.cam_checkout = False
                 st.rerun()
             
-            foto_out = st.camera_input("Aponte para o código de barras", key="cam_out")
+            foto_out = st.camera_input("Point to the barcode", key="cam_out")
             if foto_out:
-                with st.spinner("Lendo..."):
+                with st.spinner("Reading..."):
                     codigos = decode(Image.open(foto_out))
                     if codigos:
                         st.session_state.isbn_checkout = codigos[0].data.decode("utf-8")
                         st.session_state.cam_checkout = False # Desliga a câmera automaticamente
                         st.rerun()
                     else:
-                        st.error("Código não detectado.")
+                        st.error("No code detected. Try again with better lighting and focus.")
 
         # Campos de preenchimento
         st.markdown("---")
-        isbn_input_out = st.text_input("ISBN ou ID do Livro", value=st.session_state.isbn_checkout)
+        isbn_input_out = st.text_input("ISBN or Book ID", value=st.session_state.isbn_checkout)
         
         # Lista suspensa com os nomes dos amigos em vez de IDs
         opcoes_amigos = {f"{f['first_name']} {f['last_name']}": f['person_id'] for f in friends_list} if friends_list else {"Nenhum amigo cadastrado": None}
-        amigo_selecionado = st.selectbox("Selecione o Amigo", options=list(opcoes_amigos.keys()))
+        amigo_selecionado = st.selectbox("Select the Borrower", options=list(opcoes_amigos.keys()))
         
-        dias = st.number_input("Dias de Empréstimo", value=14, min_value=1)
+        dias = st.number_input("Loan Period (Days)", value=14, min_value=1)
         
-        if st.button("Registrar Saída", type="primary", use_container_width=True):
+        if st.button("Register Loan", type="primary", use_container_width=True):
             b_id = None
             # Tenta descobrir o ID do livro pelo ISBN lido
             for b in books_list:
@@ -438,47 +438,47 @@ elif page == "🔄 Loans":
             if b_id and p_id:
                 res = requests.post(f"{API_URL}/loans/", json={"book_id": b_id, "person_id": p_id, "loan_period_days": dias})
                 if res.status_code == 201:
-                    st.success("Empréstimo registado!")
+                    st.success("Loan registered!")
                     st.session_state.isbn_checkout = "" # Limpa o campo
                 else:
-                    st.error(f"Erro: {res.json().get('detail')}")
+                    st.error(f"Error: {res.json().get('detail')}")
             else:
-                st.warning("Livro não encontrado no acervo ou amigo inválido.")
+                st.warning("Book not found in inventory or invalid borrower.")
 
     # ==========================================
     # 📥 COLUNA 2: DEVOLVER LIVRO (RETURN)
     # ==========================================
     with col2:
-        st.subheader("📥 Devolver (Return)")
+        st.subheader("📥 Return")
         
         # Controle da Câmera de Devolução
         if "cam_return" not in st.session_state: st.session_state.cam_return = False
         if "isbn_return" not in st.session_state: st.session_state.isbn_return = ""
 
         if not st.session_state.cam_return:
-            if st.button("📸 Escanear Devolução", key="btn_cam_in"):
+            if st.button("📸 Scan Return", key="btn_cam_in"):
                 st.session_state.cam_return = True
                 st.rerun()
         else:
-            if st.button("❌ Desligar Câmera", key="btn_close_in"):
+            if st.button("❌ Turn Off Camera", key="btn_close_in"):
                 st.session_state.cam_return = False
                 st.rerun()
             
-            foto_in = st.camera_input("Aponte para o código de barras", key="cam_in")
+            foto_in = st.camera_input("Point to the barcode", key="cam_in")
             if foto_in:
-                with st.spinner("Lendo..."):
+                with st.spinner("Reading..."):
                     codigos = decode(Image.open(foto_in))
                     if codigos:
                         st.session_state.isbn_return = codigos[0].data.decode("utf-8")
                         st.session_state.cam_return = False
                         st.rerun()
                     else:
-                        st.error("Código não detectado.")
+                        st.error("Code not detected.")
 
         st.markdown("---")
-        isbn_input_in = st.text_input("ISBN do Livro ou ID da Transação", value=st.session_state.isbn_return)
+        isbn_input_in = st.text_input("Book ISBN or Transaction ID", value=st.session_state.isbn_return)
         
-        if st.button("Registrar Devolução", type="primary", use_container_width=True):
+        if st.button("Register Return", type="primary", use_container_width=True):
             t_id = None
             
             # Se a pessoa digitou apenas o número da transação (ID curto)
@@ -498,9 +498,9 @@ elif page == "🔄 Loans":
             if t_id:
                 res = requests.post(f"{API_URL}/loans/{t_id}/return", json={})
                 if res.status_code == 200:
-                    st.success("Livro devolvido com sucesso!")
+                    st.success("Book returned successfully!")
                     st.session_state.isbn_return = "" # Limpa o campo
                 else:
-                    st.error(f"Erro: {res.json().get('detail')}")
+                    st.error(f"Error: {res.json().get('detail')}")
             else:
-                st.warning("Não foi encontrado um empréstimo ativo para este livro.")
+                st.warning("No active loan found for this book.")
