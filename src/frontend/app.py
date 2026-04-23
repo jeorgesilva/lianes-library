@@ -6,13 +6,13 @@ import pandas as pd
 from pyzbar.pyzbar import decode
 from PIL import Image
 
-# 🚨 A MAGIA TEM QUE ACONTECER ANTES DE QUALQUER IMPORT 'SRC' 🚨
+# adds the parent directory to the system path so we can import our styles module
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from src.ui.styles import apply_styles
 
-# --- Função de Busca da Open Library Embutida ---
+# --- Function for searching books in Open Library ---
 def buscar_livro_openlibrary(isbn):
-    """Busca os dados do livro usando a API gratuita da Open Library."""
+    """looks up a book in the Open Library."""
     url = f"https://openlibrary.org/api/books?bibkeys=ISBN:{isbn}&format=json&jscmd=data"
     try:
         response = requests.get(url, timeout=10)
@@ -30,8 +30,9 @@ def buscar_livro_openlibrary(isbn):
         st.error(f"Erro ao conectar com a Open Library: {e}")
     return None
 
+# --- Function for rendering a horizontal book carousel ---
 def renderizar_carrossel(titulo_secao, lista_livros):
-    """Gera um carrossel horizontal estilo Netflix com CSS embutido e 'blindado'."""
+    """Generates a horizontal book carousel."""
     if not lista_livros:
         return # Não mostra nada se a lista estiver vazia
 
@@ -83,14 +84,14 @@ def renderizar_carrossel(titulo_secao, lista_livros):
     </style>
     """
     
-    # 2. Construção do Título e da Linha
+    # 2. build the section title and the carousel HTML in a single string to minimize re-renders
     st.markdown(f"{estilo_fixo}<h4 style='margin-bottom: -10px;'>{titulo_secao}</h4>", unsafe_allow_html=True)
     
     html_final = '<div class="nx-row">'
     
     for livro in lista_livros:
         capa = livro.get('cover_url', '')
-        titulo = str(livro.get('title', 'Sem Título')).replace("'", " ")
+        titulo = str(livro.get('title', 'no title')).replace("'", " ")
         
         # Define se mostra imagem ou fundo escuro com texto
         if capa and str(capa) != "None":
