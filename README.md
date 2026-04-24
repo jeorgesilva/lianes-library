@@ -1,103 +1,122 @@
 
-# 📚 Liane’s Library  
-*A personal book-loan tracking system, evolving into a smart, AI-powered library.*
+# 📚 Liane’s Library — Personal Book‑Loan Tracker & Smart Library Prototype
+
+![Python](https://img.shields.io/badge/Python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54) ![Streamlit](https://img.shields.io/badge/Streamlit-FE4B4B?style=for-the-badge&logo=streamlit&logoColor=white) ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white) ![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white) ![ChromaDB](https://img.shields.io/badge/ChromaDB-2E8B57?style=for-the-badge) ![LangChain](https://img.shields.io/badge/LangChain-6F42C1?style=for-the-badge)
 
 ---
 
-## 💼 Case Study: Why This Project Exists
+## Short description
 
-Liane is an avid reader, with a growing collection of books she loves to share.  
-Unfortunately, when she lends books to friends, colleagues, and even distant acquaintances, many of them forget to return them.
-
-After losing several favorites, Liane shared her frustration over coffee:  
-
-> *“I love sharing my books, but I can’t keep track of who has them.”*
-
-So, if people treat her like a library…  
-**Why not become one?**
-
-This project aims to build a simple, user-friendly system so Liane can track:
-- Who borrowed each book
-- When they should return it
-- Which books are overdue
-
-Our mission: **Make book sharing joyful again.**
+Liane’s Library is a lightweight book‑loan tracking system that evolves into a smart, AI‑powered personal library.  
+Core flow: **Loan tracking (DB)** → **User interface (Streamlit)** → **Optional AI features (RAG, semantic search)**.  
+Target: individuals who lend books and want a simple, reliable way to track borrowers, due dates and overdue items.
 
 ---
 
-## 🏗️ Architecture & Folder Structure
+## Key features
 
-As the project scales to include AI features and cloud deployment, we adopted a clean, domain-oriented architecture:
+- **Loan management**: register loans, expected return dates and actual returns.  
+- **Borrower profiles**: contact info, relationship type and history.  
+- **Overdue detection**: automatic flags for late returns and simple notification hooks.  
+- **Search & metadata**: title/author search with optional enrichment from external APIs (OpenLibrary / Google Books).  
+- **AI enhancements (optional)**: semantic search, fuzzy matching for duplicate borrowers, and a conversational assistant for queries.  
+- **Export & reports**: CSV/JSON exports and printable loan summaries.
 
-```text
+---
+
+## Outputs
+
+- `data/` → raw exports, backups and knowledge base files  
+- `db/` → migration scripts and sample SQL dumps  
+- `docs/` → UI screenshots, ER diagram and usage notes  
+- `exports/` → CSV/JSON reports and overdue lists
+
+---
+
+## Project structure (recommended)
+
+```
 lianes-library/
-├── data/                  # Raw data, mockups, or backups
-├── notebooks/             # Prototyping Jupyter notebooks
+├── data/                  # Raw data, mockups, backups
+├── docs/                  # Screenshots, ER diagrams, experiment notes
+├── notebooks/             # Prototypes and data exploration
 ├── src/
-│   ├── frontend/          # 🎨 Streamlit UI app and components
-│   ├── api/               # 🔌 FastAPI routes and endpoints
-│   ├── db/                # 🗄️ Relational Database (MySQL) connection and CRUD logic
-│   ├── ai/                # 🧠 RAG, NLP, LLMs, Vector Stores (ChromaDB), and Agents
-│   ├── schemas/           # 📦 Pydantic Models for data validation
-│   ├── core/              # ⚙️ Global configurations and environment variables
-│   └── scripts/           # 🛠️ One-off utility or migration scripts
-├── .env                   # Environment credentials
-├── requirements.txt       # Project dependencies
-└── README.md              # Project documentation
+│   ├── frontend/          # Streamlit UI app and components
+│   ├── api/               # FastAPI routes and endpoints
+│   ├── db/                # DB models, migrations, CRUD logic
+│   ├── ai/                # RAG, NLP, vector store integration
+│   ├── schemas/           # Pydantic models
+│   ├── core/              # Config and environment handling
+│   └── scripts/           # Utilities and migration scripts
+├── .env                   # Environment credentials (not committed)
+├── requirements.txt
+└── README.md
 ```
 
 ---
 
-## 🚀 Future Implementation Roadmap (AI & Cloud Era)
+## Quickstart (local)
 
-This section outlines our strategic pivot towards an AI-powered, cloud-native architecture. While maintaining our core mission of tracking book loans, Liane's Library is evolving into a smart system leveraging Retrieval-Augmented Generation (RAG) and Natural Language Processing (NLP).
+1. **Clone**
+```bash
+git clone https://github.com/<your-org>/lianes-library.git
+cd lianes-library
+```
 
-### ☁️ Cloud & Infrastructure Migration
-1. **Fully Managed Cloud Deployment**
-    - Migrate the local MySQL database to a managed cloud provider (e.g., Supabase, AWS RDS, or PlanetScale) to ensure high availability.
-    - Deploy the Streamlit frontend to Streamlit Community Cloud or Vercel.
-    - Containerize the backend API (FastAPI) using Docker and deploy via Google Cloud Run or AWS AppRunner.
+2. **Environment**
+```bash
+python -m venv .venv
+source .venv/bin/activate   # macOS / Linux
+.venv\Scripts\activate      # Windows
+pip install -r requirements.txt
+```
 
-2. **Vector Database Integration**
-    - Transition local vector stores (`ChromaDB`) to a robust cloud environment (e.g., Pinecone, Weaviate, or Chroma Cloud) to persist embeddings for book summaries and metadata.
+3. **Configure**
+- Create `.env` with DB credentials and optional API keys (OpenLibrary, Google Books).
 
-### 🧠 AI & NLP Integration (The "Smart Library")
-3. **Semantic Search & RAG Assistant**
-    - **Vibe Search:** Allow users to search for books using natural language (e.g., *"A sci-fi book about space travel and philosophy"*) instead of relying solely on exact title/author matches.
-    - **Library Chatbot:** Implement a conversational agent (using LangChain and LLMs) that can answer queries like: *"Who currently has my copy of The Great Gatsby?"* or *"Which of my friends are overdue on their returns?"*
+4. **Database**
+```bash
+# Example: run migrations or load sample data
+python src/db/init_db.py
+```
 
-4. **Automated Metadata & Enrichment**
-    - Build an NLP pipeline to automatically extract and normalize author names, genres, and themes from raw text or external APIs (Google Books/OpenLibrary).
-    - Implement Fuzzy Matching to prevent duplicate borrower profiles (e.g., resolving "Jeorge Silva" vs. "Jeorge Cassio").
+5. **Run services**
+```bash
+# API
+uvicorn src.api.main:app --reload
 
-5. **Smart Alerts & Insights**
-    - Use NLP to analyze reading habits and generate personalized borrowing recommendations for Liane's friends.
-    - Implement an intelligent, automated email/WhatsApp notification system for overdue books, using generated polite reminders.
-
-### 📚 Core System Enhancements (Legacy Support)
-6. **Damage & Loss Registry**
-    - Maintain a dedicated flow for registering damaged or lost books, automatically synchronizing book availability status.
-    
-7. **Audit & Analytics Dashboard**
-    - Track system usage, loan frequency, and RAG query patterns to understand how the library is being searched and utilized.
+# Frontend (Streamlit)
+streamlit run src.frontend.app.py
+```
 
 ---
 
-## 🧱 Tech Stack
+## Roadmap (AI & Cloud)
+
+- **Cloud migration**: move MySQL to managed DB (Supabase / RDS / PlanetScale).  
+- **Vector store**: persist embeddings in Pinecone / Weaviate or Chroma Cloud.  
+- **Semantic search & RAG**: natural language search and a conversational assistant for library queries.  
+- **Automated enrichment**: fetch metadata from OpenLibrary / Google Books and normalize authors/genres.  
+- **Smart notifications**: automated, polite reminders via email/WhatsApp (configurable templates).  
+- **Analytics**: dashboard for loan frequency, most‑borrowed books and overdue trends.
+
+---
+
+## Tech stack
 
 | Layer | Tool |
-|-------|------|
-| 🗄️ **Relational Database** | MySQL (Migrating to Cloud) |
-| 🗂️ **Vector Database** | ChromaDB / Pinecone |
-| 🐍 **Backend & API** | Python, FastAPI, Pydantic, SQLAlchemy |
-| 🧠 **AI & NLP** | LangChain, HuggingFace, OpenAI (or open-source LLMs) |
-| 🎨 **Frontend** | Streamlit |
-| ☁️ **Deployment** | Docker, Streamlit Cloud, AWS / GCP |
-| 🔗 **Version Control** | Git + GitHub |
+|---|---|
+| Database | MySQL (local → cloud) |
+| Vector store | ChromaDB / Pinecone |
+| Backend | Python · FastAPI · SQLAlchemy · Pydantic |
+| Frontend | Streamlit |
+| AI / NLP | LangChain · HuggingFace · Sentence‑Transformers |
+| Deployment | Docker · Cloud Run / Streamlit Cloud |
+| Versioning | Git · GitHub |
 
 ---
 
-### 🗄️ Database Design (ER Diagram)
+## Database design (ER diagram)
 
 ```mermaid
 erDiagram
@@ -131,9 +150,40 @@ erDiagram
         DATE loan_date
         DATE expected_return_date
         DATE actual_return_date
+        ENUM status
     }
 
     books ||--o{ transactions : contains
     borrowers ||--o{ transactions : borrows
 ```
+
+---
+
+## Notes & best practices
+
+- **Privacy**: store personal contact data responsibly; do not commit secrets.  
+- **Reproducibility**: include sample data and migration scripts for easy setup.  
+- **Data enrichment**: use external APIs sparingly and cache results to avoid rate limits.  
+- **Testing**: add unit tests for DB logic and API endpoints; include integration tests for key flows.
+
+---
+
+## How to contribute
+
+- Open an issue for bugs or feature requests.  
+- Create a branch `feature/<name>` and submit a PR to `main`.  
+- Include tests for new features and update docs when behavior changes.
+
+---
+
+## Contact
+
+**Jeorge Silva** — Project maintainer  
+GitHub: `github.com/jeorgesilva` · Email: `jeorgecassil@gmail.com`
+
+---
+
+## License
+
+MIT License — free for personal and commercial use.
 ```
