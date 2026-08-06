@@ -1,4 +1,4 @@
-import { Container } from "@cloudflare/containers";
+import { Container, getRandom } from "@cloudflare/containers";
 
 export interface Env {
   LIANES_API: DurableObjectNamespace<LianesApi>;
@@ -20,12 +20,11 @@ export class LianesApi extends Container {
   requiredPorts = [8080];
   sleepAfter = "10m";
   enableInternet = true; // needed to reach Aiven MySQL, Pinecone, HuggingFace
-  pingEndpoint = "/";
 }
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    const container = env.LIANES_API.getRandom();
+    const container = await getRandom(env.LIANES_API, 3);
 
     await container.startAndWaitForPorts({
       startOptions: {
