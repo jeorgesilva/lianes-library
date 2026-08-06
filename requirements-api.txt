@@ -1,0 +1,12 @@
+fastapi==0.141.1
+uvicorn==0.52.1
+pydantic==2.13.4
+sqlalchemy==2.0.51
+pymysql==1.2.0
+cryptography==50.0.0
+python-dotenv==1.2.2
+langchain-community==0.4.2
+langchain-pinecone==0.2.13
+pinecone-client==6.0.0
+sentence-transformers==5.7.0
+huggingface_hub==1.26.1

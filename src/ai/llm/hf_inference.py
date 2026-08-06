@@ -3,7 +3,7 @@ import os
 from huggingface_hub import InferenceClient
 
 
-DEFAULT_MODEL = "mistralai/Mistral-7B-Instruct-v0.2"
+DEFAULT_MODEL = "Qwen/Qwen2.5-7B-Instruct"
 
 
 def get_client(api_token: str | None = None) -> InferenceClient:
@@ -15,4 +15,10 @@ def get_client(api_token: str | None = None) -> InferenceClient:
 
 def simple_completion(prompt: str, api_token: str | None = None) -> str:
     client = get_client(api_token=api_token)
-    return client.text_generation(prompt, max_new_tokens=256)
+    # HuggingFace's Inference API now routes this model through providers that
+    # only support the "conversational" task, not raw text_generation.
+    completion = client.chat_completion(
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=256,
+    )
+    return completion.choices[0].message.content

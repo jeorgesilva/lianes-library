@@ -1,0 +1,33 @@
+{
+  "name": "lianes-library-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-01-10",
+  "containers": [
+    {
+      "class_name": "LianesApi",
+      "image": "../Dockerfile",
+      "instance_type": "standard-1",
+      "max_instances": 3
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "LIANES_API",
+        "class_name": "LianesApi"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["LianesApi"]
+    }
+  ],
+  // Non-secret values can live here as [vars]; secrets below must be set
+  // individually via `wrangler secret put <NAME>` before deploying (Fase 2) —
+  // do not put real credentials in this file.
+  "vars": {
+    "PINECONE_INDEX_NAME": "lianes-library"
+  }
+}

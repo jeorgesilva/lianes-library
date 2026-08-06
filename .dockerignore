@@ -1,0 +1,15 @@
+.git
+.env
+.venv
+.lianevenv
+__pycache__
+*.pyc
+notebooks/
+chroma_data/
+data/
+docs/
+reports/
+.streamlit/
+.vscode/
+*.png
+*.ipynb
