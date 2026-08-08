@@ -2,32 +2,74 @@ import { Container, getContainer } from "@cloudflare/containers";
 
 export interface Env {
   LIANES_API: DurableObjectNamespace<LianesApi>;
+  DB: D1Database;
   PINECONE_INDEX_NAME: string;
-  DB_HOST: string;
-  DB_PORT: string;
-  DB_USER: string;
-  DB_PASS: string;
-  DB_NAME: string;
   PINECONE_API_KEY: string;
   HF_API_TOKEN: string;
+  INTERNAL_D1_TOKEN: string;
 }
 
 // Stateless FastAPI backend — every request is independent, state lives in
-// MySQL (Aiven) and Pinecone, not in the container. Single instance
-// (getContainer + fixed name) instead of getRandom() load-balancing: the
-// Containers beta was intermittently failing to start some instance slots,
-// and this app's traffic doesn't need horizontal scaling anyway.
+// D1 and Pinecone, not in the container. Single instance (getContainer +
+// fixed name) instead of getRandom() load-balancing: the Containers beta was
+// intermittently failing to start some instance slots, and this app's
+// traffic doesn't need horizontal scaling anyway.
 export class LianesApi extends Container {
   defaultPort = 8080;
   requiredPorts = [8080];
   sleepAfter = "10m";
-  enableInternet = true; // needed to reach Aiven MySQL, Pinecone, HuggingFace
+  enableInternet = true; // needed to reach the D1 proxy, Pinecone, HuggingFace
 }
 
 const MAX_ATTEMPTS = 3;
 
+interface D1Statement {
+  sql: string;
+  params?: unknown[];
+}
+
+// D1 bindings only exist inside the Worker, not inside the container, so the
+// FastAPI app reaches D1 by calling back into this same Worker over HTTPS.
+// Guarded by a shared secret instead of a Cloudflare API token, since it only
+// needs to expose this app's own database, not full account-level D1 access.
+//
+// Body is either a single statement or an array — arrays run atomically via
+// env.DB.batch() so a create-loan (insert transaction + update book) can't
+// leave the two tables out of sync if one write fails.
+async function handleD1Proxy(request: Request, env: Env): Promise<Response> {
+  if (request.headers.get("X-Internal-Token") !== env.INTERNAL_D1_TOKEN) {
+    return new Response("Forbidden", { status: 403 });
+  }
+
+  const body = await request.json<D1Statement | D1Statement[]>();
+
+  try {
+    if (Array.isArray(body)) {
+      const results = await env.DB.batch(
+        body.map((stmt) => env.DB.prepare(stmt.sql).bind(...(stmt.params ?? [])))
+      );
+      return Response.json({
+        success: true,
+        results: results.map((r) => r.results),
+        meta: results.map((r) => r.meta),
+      });
+    }
+
+    const result = await env.DB.prepare(body.sql).bind(...(body.params ?? [])).all();
+    return Response.json({ success: true, results: result.results, meta: result.meta });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return Response.json({ success: false, error: message }, { status: 500 });
+  }
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
+    const url = new URL(request.url);
+    if (url.pathname === "/__d1/query" && request.method === "POST") {
+      return handleD1Proxy(request, env);
+    }
+
     let lastError: unknown;
 
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
@@ -37,11 +79,8 @@ export default {
         await container.startAndWaitForPorts({
           startOptions: {
             envVars: {
-              DB_HOST: env.DB_HOST,
-              DB_PORT: env.DB_PORT,
-              DB_USER: env.DB_USER,
-              DB_PASS: env.DB_PASS,
-              DB_NAME: env.DB_NAME,
+              D1_PROXY_URL: `${url.origin}/__d1/query`,
+              INTERNAL_D1_TOKEN: env.INTERNAL_D1_TOKEN,
               PINECONE_API_KEY: env.PINECONE_API_KEY,
               PINECONE_INDEX_NAME: env.PINECONE_INDEX_NAME,
               HF_API_TOKEN: env.HF_API_TOKEN,
