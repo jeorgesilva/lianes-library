@@ -24,8 +24,16 @@
       "new_sqlite_classes": ["LianesApi"]
     }
   ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "lianes-library",
+      "database_id": "fde93a16-e54f-41d2-873b-d39d5be7cb7b",
+      "migrations_dir": "migrations"
+    }
+  ],
   // Non-secret values can live here as [vars]; secrets below must be set
-  // individually via `wrangler secret put <NAME>` before deploying (Fase 2) —
+  // individually via `wrangler secret put <NAME>` before deploying —
   // do not put real credentials in this file.
   "vars": {
     "PINECONE_INDEX_NAME": "lianes-library"
