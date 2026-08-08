@@ -2,21 +2,21 @@ from typing import Optional, List, Dict, Any
 from datetime import date, timedelta
 from src.db.d1_client import d1_query, d1_one, d1_batch
 
-def create_loan(book_id: int, person_id: int, loan_date: Optional[date] = None,
+def create_loan(owner_id: int, book_id: int, person_id: int, loan_date: Optional[date] = None,
                 loan_period_days: int = 14) -> Dict[str, Any]:
     """Cria um novo empréstimo. Valida se o livro está disponível e o usuário ativo."""
     loan_date = loan_date or date.today()
     due_date = loan_date + timedelta(days=loan_period_days)
 
-    book = d1_one("SELECT book_id, title, book_status FROM books WHERE book_id = ?", [book_id])
+    book = d1_one("SELECT book_id, title, book_status FROM books WHERE book_id = ? AND owner_id = ?", [book_id, owner_id])
     if not book:
         raise ValueError(f"Book ID {book_id} does not exist.")
     if book['book_status'].upper() != 'AVAILABLE':
         raise ValueError(f"Book '{book['title']}' is not available (status: {book['book_status']}).")
 
     borrower = d1_one(
-        "SELECT person_id, first_name, last_name, status FROM borrowers WHERE person_id = ?",
-        [person_id],
+        "SELECT person_id, first_name, last_name, status FROM borrowers WHERE person_id = ? AND owner_id = ?",
+        [person_id, owner_id],
     )
     if not borrower:
         raise ValueError(f"Borrower ID {person_id} does not exist.")
@@ -26,12 +26,12 @@ def create_loan(book_id: int, person_id: int, loan_date: Optional[date] = None,
     metas = d1_batch([
         (
             """
-            INSERT INTO transactions (book_id, person_id, loan_date, due_date)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO transactions (book_id, person_id, loan_date, due_date, owner_id)
+            VALUES (?, ?, ?, ?, ?)
             """,
-            [book_id, person_id, loan_date.isoformat(), due_date.isoformat()],
+            [book_id, person_id, loan_date.isoformat(), due_date.isoformat(), owner_id],
         ),
-        ("UPDATE books SET book_status = 'BORROWED' WHERE book_id = ?", [book_id]),
+        ("UPDATE books SET book_status = 'BORROWED' WHERE book_id = ? AND owner_id = ?", [book_id, owner_id]),
     ])
 
     return {
@@ -45,7 +45,7 @@ def create_loan(book_id: int, person_id: int, loan_date: Optional[date] = None,
         "status": "active"
     }
 
-def process_return(transaction_id: int, return_date: Optional[date] = None) -> Dict[str, Any]:
+def process_return(owner_id: int, transaction_id: int, return_date: Optional[date] = None) -> Dict[str, Any]:
     """Registra a devolução de um livro e o marca como AVAILABLE novamente."""
     return_date = return_date or date.today()
 
@@ -55,9 +55,9 @@ def process_return(transaction_id: int, return_date: Optional[date] = None) -> D
         FROM transactions t
         JOIN books b ON t.book_id = b.book_id
         JOIN borrowers br ON t.person_id = br.person_id
-        WHERE t.transaction_id = ?
+        WHERE t.transaction_id = ? AND t.owner_id = ?
         """,
-        [transaction_id],
+        [transaction_id, owner_id],
     )
 
     if not trans:
@@ -67,10 +67,10 @@ def process_return(transaction_id: int, return_date: Optional[date] = None) -> D
 
     d1_batch([
         (
-            "UPDATE transactions SET actual_return_date = ? WHERE transaction_id = ?",
-            [return_date.isoformat(), transaction_id],
+            "UPDATE transactions SET actual_return_date = ? WHERE transaction_id = ? AND owner_id = ?",
+            [return_date.isoformat(), transaction_id, owner_id],
         ),
-        ("UPDATE books SET book_status = 'AVAILABLE' WHERE book_id = ?", [trans['book_id']]),
+        ("UPDATE books SET book_status = 'AVAILABLE' WHERE book_id = ? AND owner_id = ?", [trans['book_id'], owner_id]),
     ])
 
     due_date = date.fromisoformat(trans['due_date'])
@@ -87,8 +87,8 @@ def process_return(transaction_id: int, return_date: Optional[date] = None) -> D
         "status": "returned"
     }
 
-def get_active_loans() -> List[Dict[str, Any]]:
-    """Retorna todos os empréstimos ativos (em aberto)."""
+def get_active_loans(owner_id: int) -> List[Dict[str, Any]]:
+    """Retorna todos os empréstimos ativos (em aberto) do usuário."""
     rows = d1_query(
         """
         SELECT t.transaction_id, t.book_id, b.title as book_title, t.person_id,
@@ -98,8 +98,9 @@ def get_active_loans() -> List[Dict[str, Any]]:
         FROM transactions t
         JOIN books b ON t.book_id = b.book_id
         JOIN borrowers br ON t.person_id = br.person_id
-        WHERE t.actual_return_date IS NULL
+        WHERE t.actual_return_date IS NULL AND t.owner_id = ?
         ORDER BY t.due_date ASC
-        """
+        """,
+        [owner_id],
     )
     return [dict(r) for r in rows]

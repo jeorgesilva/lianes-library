@@ -1,4 +1,5 @@
 import { Container, getContainer } from "@cloudflare/containers";
+import { checkOverdueAndNotify } from "./notifications";
 
 export interface Env {
   LIANES_API: DurableObjectNamespace<LianesApi>;
@@ -7,6 +8,7 @@ export interface Env {
   PINECONE_API_KEY: string;
   HF_API_TOKEN: string;
   INTERNAL_D1_TOKEN: string;
+  JWT_SECRET: string;
 }
 
 // Stateless FastAPI backend — every request is independent, state lives in
@@ -70,6 +72,16 @@ export default {
       return handleD1Proxy(request, env);
     }
 
+    // Manual trigger for the same job the daily cron runs — lets the overdue
+    // detection + email templates be tested without waiting for the schedule.
+    if (url.pathname === "/__internal/check-overdue" && request.method === "POST") {
+      if (request.headers.get("X-Internal-Token") !== env.INTERNAL_D1_TOKEN) {
+        return new Response("Forbidden", { status: 403 });
+      }
+      const result = await checkOverdueAndNotify(env);
+      return Response.json(result);
+    }
+
     let lastError: unknown;
 
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
@@ -81,6 +93,7 @@ export default {
             envVars: {
               D1_PROXY_URL: `${url.origin}/__d1/query`,
               INTERNAL_D1_TOKEN: env.INTERNAL_D1_TOKEN,
+              JWT_SECRET: env.JWT_SECRET,
               PINECONE_API_KEY: env.PINECONE_API_KEY,
               PINECONE_INDEX_NAME: env.PINECONE_INDEX_NAME,
               HF_API_TOKEN: env.HF_API_TOKEN,
@@ -102,5 +115,9 @@ export default {
     }
 
     throw lastError;
+  },
+
+  async scheduled(_event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
+    ctx.waitUntil(checkOverdueAndNotify(env));
   },
 };

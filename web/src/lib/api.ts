@@ -1,5 +1,31 @@
 const API_URL = import.meta.env.VITE_API_URL as string;
 
+const TOKEN_KEY = "lianes_token";
+const USER_KEY = "lianes_user";
+
+export interface AuthUser {
+  user_id: number;
+  first_name: string;
+  last_name: string | null;
+  email: string;
+}
+
+export const auth = {
+  getToken: () => localStorage.getItem(TOKEN_KEY),
+  getUser: (): AuthUser | null => {
+    const raw = localStorage.getItem(USER_KEY);
+    return raw ? (JSON.parse(raw) as AuthUser) : null;
+  },
+  setSession: (token: string, user: AuthUser) => {
+    localStorage.setItem(TOKEN_KEY, token);
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+  },
+  clearSession: () => {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+  },
+};
+
 export interface Book {
   book_id: number;
   ISBN: string | null;
@@ -55,11 +81,30 @@ export interface ChatMessage {
   content: string;
 }
 
+export interface AnalyticsSummary {
+  totals: { books: number; borrowers: number; active_loans: number; overdue_now: number };
+  loans_per_month: { month: string; count: number }[];
+  top_books: { book_id: number; title: string; author: string | null; loan_count: number }[];
+  late_return_rate_per_month: { month: string; total: number; late: number; late_pct: number }[];
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const token = auth.getToken();
   const res = await fetch(`${API_URL}${path}`, {
     ...init,
-    headers: { "Content-Type": "application/json", ...init?.headers },
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...init?.headers,
+    },
   });
+  if (res.status === 401) {
+    auth.clearSession();
+    if (!window.location.pathname.startsWith("/login")) {
+      window.location.href = "/login";
+    }
+    throw new Error("Sessão expirada. Faça login novamente.");
+  }
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.detail ?? `Request failed: ${res.status}`);
@@ -68,6 +113,18 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  auth: {
+    login: (payload: { email: string; password: string }) =>
+      request<{ access_token: string; token_type: string; user: AuthUser }>("/auth/login", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    register: (payload: { first_name: string; last_name?: string; email: string; password: string }) =>
+      request<{ access_token: string; token_type: string; user: AuthUser }>("/auth/register", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+  },
   books: {
     list: (params?: { title?: string; author?: string; status?: string; limit?: number }) => {
       const qs = new URLSearchParams();
@@ -99,6 +156,9 @@ export const api = {
   },
   chat: {
     ask: (message: string) => request<{ reply: string }>("/chat/", { method: "POST", body: JSON.stringify({ message }) }),
+  },
+  analytics: {
+    summary: (months = 12) => request<AnalyticsSummary>(`/analytics/summary?months=${months}`),
   },
   openLibrary: {
     lookup: async (isbn: string) => {

@@ -1,8 +1,11 @@
 fastapi==0.141.1
 uvicorn==0.52.1
 pydantic==2.13.4
+email-validator==2.2.0
 requests==2.34.2
 python-dotenv==1.2.2
+bcrypt==4.3.0
+pyjwt==2.10.1
 langchain-community==0.4.2
 langchain-pinecone==0.2.13
 pinecone-client==6.0.0

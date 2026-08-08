@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from src.ai.agents.librarian import chat_with_librarian
+from src.api.deps import get_current_user_id
 
 router = APIRouter(prefix="/chat", tags=["AI Chatbot"])
 
@@ -8,7 +9,7 @@ class ChatRequest(BaseModel):
     message: str
 
 @router.post("/")
-def ask_the_librarian(request: ChatRequest):
+def ask_the_librarian(request: ChatRequest, _owner_id: int = Depends(get_current_user_id)):
     """
     Envia uma mensagem para o Agente RAG da Biblioteca da Liane.
     Ele buscará livros por semântica e responderá em linguagem natural.

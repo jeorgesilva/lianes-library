@@ -1,22 +1,22 @@
 from typing import Optional, List, Dict, Any
 from src.db.d1_client import d1_query, d1_one
 
-def create_book(title: str, author: str, isbn: str = None, cost: float = None, cover_url: str = None) -> Dict[str, Any]:
-    """Insere um novo livro no catálogo."""
+def create_book(owner_id: int, title: str, author: str, isbn: str = None, cost: float = None, cover_url: str = None) -> Dict[str, Any]:
+    """Insere um novo livro no catálogo do usuário."""
     row = d1_one(
         """
-        INSERT INTO books (title, author, ISBN, cost_book, book_status, cover_url)
-        VALUES (?, ?, ?, ?, 'AVAILABLE', ?)
+        INSERT INTO books (title, author, ISBN, cost_book, book_status, cover_url, owner_id)
+        VALUES (?, ?, ?, ?, 'AVAILABLE', ?, ?)
         RETURNING *
         """,
-        [title, author, isbn, cost, cover_url],
+        [title, author, isbn, cost, cover_url, owner_id],
     )
     return dict(row)
 
-def get_books(title: str = None, author: str = None, status: str = None, limit: int = 100) -> List[Dict[str, Any]]:
-    """Busca livros usando filtros opcionais."""
-    query = "SELECT * FROM books WHERE 1=1"
-    params: List[Any] = []
+def get_books(owner_id: int, title: str = None, author: str = None, status: str = None, limit: int = 100) -> List[Dict[str, Any]]:
+    """Busca livros do usuário usando filtros opcionais."""
+    query = "SELECT * FROM books WHERE owner_id = ?"
+    params: List[Any] = [owner_id]
 
     if title:
         query += " AND title LIKE ?"
@@ -33,28 +33,28 @@ def get_books(title: str = None, author: str = None, status: str = None, limit: 
 
     return [dict(r) for r in d1_query(query, params)]
 
-def get_book_by_id(book_id: int) -> Optional[Dict[str, Any]]:
-    """Busca um único livro pelo seu ID."""
-    row = d1_one("SELECT * FROM books WHERE book_id = ?", [book_id])
+def get_book_by_id(owner_id: int, book_id: int) -> Optional[Dict[str, Any]]:
+    """Busca um único livro do usuário pelo seu ID."""
+    row = d1_one("SELECT * FROM books WHERE book_id = ? AND owner_id = ?", [book_id, owner_id])
     return dict(row) if row else None
 
-def update_book_status(book_id: int, new_status: str) -> Dict[str, Any]:
+def update_book_status(owner_id: int, book_id: int, new_status: str) -> Dict[str, Any]:
     """Atualiza o status de um livro, garantindo regras de negócio."""
     allowed_statuses = {'AVAILABLE', 'BORROWED', 'LOST', 'DAMAGED'}
     if new_status.upper() not in allowed_statuses:
         raise ValueError(f"Invalid status '{new_status}'. Allowed statuses: {allowed_statuses}")
 
     row = d1_one(
-        "UPDATE books SET book_status = ? WHERE book_id = ? RETURNING *",
-        [new_status.upper(), book_id],
+        "UPDATE books SET book_status = ? WHERE book_id = ? AND owner_id = ? RETURNING *",
+        [new_status.upper(), book_id, owner_id],
     )
     if row is None:
         raise ValueError(f"Book {book_id} not found.")
     return dict(row)
 
-def delete_book(book_id: int) -> str:
+def delete_book(owner_id: int, book_id: int) -> str:
     """Impede a exclusão (ou marca como LOST) se o livro estiver emprestado."""
-    book = get_book_by_id(book_id)
+    book = get_book_by_id(owner_id, book_id)
     if not book:
         raise ValueError("Book not found.")
 
@@ -62,5 +62,5 @@ def delete_book(book_id: int) -> str:
         raise ValueError("Cannot delete or remove a book that is currently BORROWED.")
 
     # Ao invés de deletar do banco, marcamos como LOST ou DAMAGED para manter histórico
-    update_book_status(book_id, 'LOST')
+    update_book_status(owner_id, book_id, 'LOST')
     return f"Book {book_id} marked as LOST (soft delete)."

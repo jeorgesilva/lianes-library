@@ -1,11 +1,26 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 
-class UserCreate(BaseModel):
+class UserRegister(BaseModel):
     first_name: str
     last_name: str | None = None
-    email: str | None = None
+    email: EmailStr
+    password: str
 
 
-class UserOut(UserCreate):
-    id: int
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class UserOut(BaseModel):
+    user_id: int
+    first_name: str
+    last_name: str | None = None
+    email: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserOut

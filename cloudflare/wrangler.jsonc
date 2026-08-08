@@ -32,6 +32,11 @@
       "migrations_dir": "migrations"
     }
   ],
+  // Daily overdue-loan check + reminder emails (currently logged, not sent —
+  // see cloudflare/src/notifications.ts). 8am UTC.
+  "triggers": {
+    "crons": ["0 8 * * *"]
+  },
   // Non-secret values can live here as [vars]; secrets below must be set
   // individually via `wrangler secret put <NAME>` before deploying —
   // do not put real credentials in this file.

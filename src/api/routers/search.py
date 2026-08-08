@@ -1,5 +1,6 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from src.ai.vectorstore import vibe_search
+from src.api.deps import get_current_user_id
 
 # Criamos um roteador focado em Busca e IA
 router = APIRouter(prefix="/search", tags=["AI & Search"])
@@ -7,7 +8,8 @@ router = APIRouter(prefix="/search", tags=["AI & Search"])
 @router.get("/vibe")
 def search_books_by_vibe(
     q: str = Query(..., description="A frase, sinopse ou 'vibe' que você quer buscar"),
-    limit: int = Query(5, description="Número máximo de livros para retornar", le=20)
+    limit: int = Query(5, description="Número máximo de livros para retornar", le=20),
+    _owner_id: int = Depends(get_current_user_id),
 ):
     """
     **Vibe Search (Busca Semântica)**
