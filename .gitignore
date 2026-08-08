@@ -16,3 +16,6 @@ data/
 
 # IDE/config
 .vscode/
+
+# Wrangler local cache (created if wrangler runs from repo root by mistake)
+.wrangler/

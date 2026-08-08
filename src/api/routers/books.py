@@ -11,6 +11,7 @@ class BookCreate(BaseModel):
     author: str
     isbn: Optional[str] = None
     cost: Optional[float] = None
+    cover_url: Optional[str] = None
 
 class BookStatusUpdate(BaseModel):
     status: str
@@ -22,8 +23,8 @@ def create_book(book: BookCreate):
     """Adiciona um novo livro ao catálogo."""
     try:
         return crud_books.create_book(
-            title=book.title, author=book.author, 
-            isbn=book.isbn, cost=book.cost
+            title=book.title, author=book.author,
+            isbn=book.isbn, cost=book.cost, cover_url=book.cover_url
         )
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

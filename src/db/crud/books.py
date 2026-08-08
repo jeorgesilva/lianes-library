@@ -1,15 +1,15 @@
 from typing import Optional, List, Dict, Any
 from src.db.d1_client import d1_query, d1_one
 
-def create_book(title: str, author: str, isbn: str = None, cost: float = None) -> Dict[str, Any]:
+def create_book(title: str, author: str, isbn: str = None, cost: float = None, cover_url: str = None) -> Dict[str, Any]:
     """Insere um novo livro no catálogo."""
     row = d1_one(
         """
-        INSERT INTO books (title, author, ISBN, cost_book, book_status)
-        VALUES (?, ?, ?, ?, 'AVAILABLE')
+        INSERT INTO books (title, author, ISBN, cost_book, book_status, cover_url)
+        VALUES (?, ?, ?, ?, 'AVAILABLE', ?)
         RETURNING *
         """,
-        [title, author, isbn, cost],
+        [title, author, isbn, cost, cover_url],
     )
     return dict(row)
 
