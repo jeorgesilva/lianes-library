@@ -5,7 +5,7 @@
   "containers": [
     {
       "class_name": "LianesApi",
-      "image": "docker.io/jeorgec/lianes-library-api:21efacd946e8bd711e1f29ca5108aa24e3ba6f88",
+      "image": "docker.io/jeorgec/lianes-library-api:c18e5137e39af25d13229caa5d27cfc8f1eba10d",
       "instance_type": "standard-1",
       "max_instances": 3
     }
