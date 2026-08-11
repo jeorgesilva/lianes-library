@@ -45,7 +45,7 @@ function SmartScan() {
           lookupMutation.mutate(isbn);
         }}
       />
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && <p className="text-sm text-danger">{error}</p>}
       {lookup && (
         <Card className="flex gap-4">
           {lookup.cover_url && <img src={lookup.cover_url} alt={lookup.title} className="h-32 w-24 object-cover rounded" />}

@@ -17,9 +17,9 @@ function ProtectedLayout() {
   if (!user) return <Navigate to="/login" replace />;
 
   return (
-    <div className="flex min-h-svh">
+    <div className="flex min-h-svh flex-col sm:flex-row">
       <Sidebar />
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-4 sm:p-8">
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/assistant" element={<SmartAssistant />} />

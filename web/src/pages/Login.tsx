@@ -68,7 +68,7 @@ export function Login() {
             />
           </Field>
 
-          {error && <p className="text-sm text-red-400">{error}</p>}
+          {error && <p className="text-sm text-danger">{error}</p>}
 
           <Button type="submit" disabled={isSubmitting} className="mt-2">
             {mode === "login" ? "Entrar" : "Criar conta"}

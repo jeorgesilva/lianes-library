@@ -67,7 +67,7 @@ function Checkout() {
           Register Loan
         </Button>
         {message && (
-          <p className={message.type === "success" ? "text-green-400 text-sm" : "text-red-400 text-sm"}>{message.text}</p>
+          <p className={message.type === "success" ? "text-success text-sm" : "text-danger text-sm"}>{message.text}</p>
         )}
       </form>
     </Card>
@@ -122,7 +122,7 @@ function Return() {
           Register Return
         </Button>
         {message && (
-          <p className={message.type === "success" ? "text-green-400 text-sm" : "text-red-400 text-sm"}>{message.text}</p>
+          <p className={message.type === "success" ? "text-success text-sm" : "text-danger text-sm"}>{message.text}</p>
         )}
       </form>
     </Card>

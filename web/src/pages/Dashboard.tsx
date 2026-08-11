@@ -1,6 +1,11 @@
+import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { api, type Book } from "../lib/api";
 import { BookCarousel } from "../components/BookCarousel";
+import { HeroBanner } from "../components/HeroBanner";
+import { StatusBadge } from "../components/StatusBadge";
+import { EmptyState } from "../components/EmptyState";
+import { BookRowSkeleton } from "../components/Skeleton";
 
 const FANTASY_WORDS = ["dragon", "magic", "potter", "wizard", "legend"];
 const SCIFI_WORDS = ["space", "science", "star", "robot", "future"];
@@ -11,17 +16,44 @@ function matches(book: Book, words: string[]) {
 }
 
 export function Dashboard() {
+  const navigate = useNavigate();
   const booksQuery = useQuery({ queryKey: ["books"], queryFn: () => api.books.list() });
   const loansQuery = useQuery({ queryKey: ["loans", "active"], queryFn: api.loans.active });
 
-  if (booksQuery.isLoading) return <p className="text-text-muted">Loading...</p>;
-  if (booksQuery.isError) return <p className="text-red-400">⚠️ Error loading the Dashboard: {(booksQuery.error as Error).message}</p>;
+  if (booksQuery.isLoading) {
+    return (
+      <div>
+        <div className="mb-8 h-56 animate-pulse rounded-2xl bg-surface" />
+        <BookRowSkeleton />
+        <BookRowSkeleton />
+      </div>
+    );
+  }
+
+  if (booksQuery.isError) {
+    return <p className="text-danger">⚠️ Error loading the Dashboard: {(booksQuery.error as Error).message}</p>;
+  }
 
   const books = booksQuery.data ?? [];
   const activeLoans = loansQuery.data ?? [];
 
   if (books.length === 0) {
-    return <p className="text-text-muted">📭 Your shelf is empty. Want to scan some books in the "Book Catalog"?</p>;
+    return (
+      <EmptyState
+        icon="📭"
+        title="Your shelf is empty"
+        description='Want to scan some books in the "Book Catalog"?'
+        action={
+          <button
+            type="button"
+            onClick={() => navigate("/catalog")}
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
+          >
+            Go to Book Catalog
+          </button>
+        }
+      />
+    );
   }
 
   const borrowedIds = new Set(activeLoans.map((l) => l.book_id));
@@ -29,14 +61,33 @@ export function Dashboard() {
   const newArrivals = [...books].sort((a, b) => b.book_id - a.book_id).slice(0, 10);
   const fantasy = books.filter((b) => matches(b, FANTASY_WORDS));
   const scifi = books.filter((b) => matches(b, SCIFI_WORDS));
+  const featured = newArrivals[0];
 
   return (
     <div>
-      <h1 className="mb-6 text-3xl font-bold text-accent">🍿 Liane's Discovery</h1>
-      <BookCarousel title="⏳ Lent" books={lent} />
+      <HeroBanner
+        book={featured}
+        eyebrow="Featured Pick"
+        description={featured.genre ? `Latest addition to your shelf · ${featured.genre}` : "Latest addition to your shelf"}
+        primaryAction={{ label: "Open in Catalog", onClick: () => navigate("/catalog") }}
+      />
+
+      <BookCarousel
+        title="⏳ Lent"
+        books={lent}
+        renderBadge={() => <StatusBadge tone="warning">Lent</StatusBadge>}
+      />
       <BookCarousel title="✨ New Arrivals" books={newArrivals} />
-      <BookCarousel title="🐉 Epic Fantasy" books={fantasy} />
-      <BookCarousel title="🚀 Space Travel and Sci-Fi" books={scifi} />
+      <BookCarousel
+        title="🐉 Epic Fantasy"
+        subtitle="Because your shelf has dragons and wizards"
+        books={fantasy}
+      />
+      <BookCarousel
+        title="🚀 Space Travel and Sci-Fi"
+        subtitle="Because your shelf reaches for the stars"
+        books={scifi}
+      />
       <BookCarousel title="📚 Explore the whole library" books={books} />
     </div>
   );

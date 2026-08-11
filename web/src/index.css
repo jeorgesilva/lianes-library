@@ -1,15 +1,48 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Fraunces";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/fraunces-500.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Fraunces";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/fraunces-600.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Fraunces";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/fraunces-700.woff2") format("woff2");
+}
+
 @theme {
   --color-bg: #0f1116;
   --color-surface: #1e232e;
+  --color-surface-hover: #262c3a;
+  --color-surface-raised: #2a3142;
   --color-border: #2d3748;
   --color-text: #e0e0e0;
   --color-text-muted: #9ca3af;
   --color-primary: #6c63ff;
   --color-accent: #a855f7;
   --color-accent-2: #8b5cf6;
+
+  --color-success: #34d399;
+  --color-warning: #f59e0b;
+  --color-danger: #f87171;
+  --color-price-drop: #eab308;
+
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
 }
 
 body {
@@ -21,4 +54,15 @@ body {
 
 #root {
   min-height: 100svh;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

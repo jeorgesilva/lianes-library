@@ -1,33 +1,74 @@
+import { useRef, type ReactNode } from "react";
 import type { Book } from "../lib/api";
+import { BookCard } from "./BookCard";
+import { BookRowSkeleton } from "./Skeleton";
 
-export function BookCarousel({ title, books }: { title: string; books: Book[] }) {
+export function BookCarousel({
+  title,
+  subtitle,
+  books,
+  isLoading,
+  renderBadge,
+  renderActions,
+  onCardClick,
+}: {
+  title: string;
+  subtitle?: string;
+  books: Book[];
+  isLoading?: boolean;
+  renderBadge?: (book: Book) => ReactNode;
+  renderActions?: (book: Book) => ReactNode;
+  onCardClick?: (book: Book) => void;
+}) {
+  const scrollerRef = useRef<HTMLDivElement>(null);
+
+  if (isLoading) return <BookRowSkeleton title={title} />;
   if (books.length === 0) return null;
+
+  const scrollBy = (direction: -1 | 1) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    el.scrollBy({ left: direction * el.clientWidth * 0.8, behavior: "smooth" });
+  };
+
   return (
-    <section className="mb-6">
-      <h2 className="mb-3 text-lg font-semibold text-text">{title}</h2>
-      <div className="flex gap-3 overflow-x-auto pb-2">
-        {books.map((book) => (
-          <div
-            key={book.book_id}
-            className="group relative h-40 w-28 shrink-0 overflow-hidden rounded-md bg-surface transition-transform hover:scale-105"
-            title={book.title}
-          >
-            {book.cover_url ? (
-              <img
-                src={book.cover_url}
-                alt={book.title}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center p-2 text-center text-[10px] text-text-muted">
-                {book.title.slice(0, 40)}
-              </div>
-            )}
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 p-2 text-center opacity-0 transition-opacity group-hover:opacity-100">
-              <span className="text-[11px] font-bold text-white">{book.title.slice(0, 60)}</span>
-            </div>
-          </div>
-        ))}
+    <section className="group/row relative mb-8">
+      <h2 className="font-display text-lg font-semibold text-text">{title}</h2>
+      {subtitle && <p className="mb-1 text-xs text-text-muted">{subtitle}</p>}
+
+      <div className="relative">
+        <button
+          type="button"
+          aria-label="Scroll left"
+          onClick={() => scrollBy(-1)}
+          className="absolute left-0 top-0 z-10 hidden h-full w-10 items-center justify-center bg-gradient-to-r from-bg to-transparent text-text opacity-0 transition-opacity duration-200 group-hover/row:opacity-100 sm:flex hover:text-primary"
+        >
+          ‹
+        </button>
+
+        <div
+          ref={scrollerRef}
+          className="flex gap-3 overflow-x-auto scroll-smooth pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {books.map((book) => (
+            <BookCard
+              key={book.book_id}
+              book={book}
+              badge={renderBadge?.(book)}
+              actions={renderActions?.(book)}
+              onClick={onCardClick ? () => onCardClick(book) : undefined}
+            />
+          ))}
+        </div>
+
+        <button
+          type="button"
+          aria-label="Scroll right"
+          onClick={() => scrollBy(1)}
+          className="absolute right-0 top-0 z-10 hidden h-full w-10 items-center justify-center bg-gradient-to-l from-bg to-transparent text-text opacity-0 transition-opacity duration-200 group-hover/row:opacity-100 sm:flex hover:text-primary"
+        >
+          ›
+        </button>
       </div>
     </section>
   );

@@ -24,7 +24,7 @@ export function Analytics() {
   });
 
   if (isLoading) return <p className="text-text-muted">Loading...</p>;
-  if (isError) return <p className="text-red-400">⚠️ Error loading analytics: {(error as Error).message}</p>;
+  if (isError) return <p className="text-danger">⚠️ Error loading analytics: {(error as Error).message}</p>;
   if (!data) return null;
 
   return (

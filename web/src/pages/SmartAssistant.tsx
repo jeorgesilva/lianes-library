@@ -38,7 +38,7 @@ function VibeSearch() {
         </Button>
       </div>
 
-      {mutation.isError && <p className="text-red-400">{(mutation.error as Error).message}</p>}
+      {mutation.isError && <p className="text-danger">{(mutation.error as Error).message}</p>}
       {results && results.length === 0 && <p className="text-text-muted">No books matched that vibe.</p>}
 
       <div className="flex flex-col gap-3">
