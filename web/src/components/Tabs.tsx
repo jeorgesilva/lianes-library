@@ -1,7 +1,18 @@
 import { useState, type ReactNode } from "react";
 
-export function Tabs({ tabs }: { tabs: { label: string; content: ReactNode }[] }) {
-  const [active, setActive] = useState(0);
+export function Tabs({
+  tabs,
+  active: activeProp,
+  onChange,
+}: {
+  tabs: { label: string; content: ReactNode }[];
+  active?: number;
+  onChange?: (index: number) => void;
+}) {
+  const [internalActive, setInternalActive] = useState(0);
+  const active = activeProp ?? internalActive;
+  const setActive = onChange ?? setInternalActive;
+
   return (
     <div>
       <div className="mb-4 flex gap-1 border-b border-border">

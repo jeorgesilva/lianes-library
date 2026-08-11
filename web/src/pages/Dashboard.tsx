@@ -19,6 +19,7 @@ export function Dashboard() {
   const navigate = useNavigate();
   const booksQuery = useQuery({ queryKey: ["books"], queryFn: () => api.books.list() });
   const loansQuery = useQuery({ queryKey: ["loans", "active"], queryFn: api.loans.active });
+  const readingQuery = useQuery({ queryKey: ["reading", "READING"], queryFn: () => api.reading.list("READING") });
 
   if (booksQuery.isLoading) {
     return (
@@ -62,15 +63,34 @@ export function Dashboard() {
   const fantasy = books.filter((b) => matches(b, FANTASY_WORDS));
   const scifi = books.filter((b) => matches(b, SCIFI_WORDS));
   const featured = newArrivals[0];
+  const continueReading = readingQuery.data?.[0];
 
   return (
     <div>
-      <HeroBanner
-        book={featured}
-        eyebrow="Featured Pick"
-        description={featured.genre ? `Latest addition to your shelf · ${featured.genre}` : "Latest addition to your shelf"}
-        primaryAction={{ label: "Open in Catalog", onClick: () => navigate("/catalog") }}
-      />
+      {continueReading ? (
+        <HeroBanner
+          book={continueReading}
+          eyebrow="Continue Reading"
+          description={continueReading.author ?? undefined}
+          progress={
+            continueReading.total_pages
+              ? { current: continueReading.current_page ?? 0, total: continueReading.total_pages }
+              : undefined
+          }
+          primaryAction={{
+            label: "Open Journal",
+            onClick: () => navigate(`/reading?tab=journal&log=${continueReading.reading_log_id}`),
+          }}
+          secondaryAction={{ label: "View Queue", onClick: () => navigate("/reading") }}
+        />
+      ) : (
+        <HeroBanner
+          book={featured}
+          eyebrow="Featured Pick"
+          description={featured.genre ? `Latest addition to your shelf · ${featured.genre}` : "Latest addition to your shelf"}
+          primaryAction={{ label: "Open in Catalog", onClick: () => navigate("/catalog") }}
+        />
+      )}
 
       <BookCarousel
         title="⏳ Lent"

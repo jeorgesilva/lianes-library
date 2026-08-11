@@ -12,10 +12,11 @@ export function Input({ className = "", ...props }: InputHTMLAttributes<HTMLInpu
 export function Field({
   label,
   children,
+  className = "",
   ...props
 }: LabelHTMLAttributes<HTMLLabelElement> & { label: string; children: ReactNode }) {
   return (
-    <label className="flex flex-col gap-1 text-sm text-text-muted" {...props}>
+    <label className={`flex flex-col gap-1 text-sm text-text-muted ${className}`} {...props}>
       {label}
       {children}
     </label>

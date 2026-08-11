@@ -1,4 +1,8 @@
-import type { Book } from "../lib/api";
+interface HeroBook {
+  title: string;
+  author?: string | null;
+  cover_url?: string | null;
+}
 
 export function HeroBanner({
   book,
@@ -8,7 +12,7 @@ export function HeroBanner({
   primaryAction,
   secondaryAction,
 }: {
-  book: Book;
+  book: HeroBook;
   eyebrow: string;
   description?: string;
   progress?: { current: number; total: number };

@@ -81,6 +81,33 @@ export interface ChatMessage {
   content: string;
 }
 
+export type ReadingStatus = "WANT_TO_READ" | "READING" | "READ" | "DNF";
+
+export interface ReadingLogItem {
+  reading_log_id: number;
+  book_id: number | null;
+  title: string;
+  author: string | null;
+  cover_url: string | null;
+  status: ReadingStatus;
+  started_at: string | null;
+  finished_at: string | null;
+  rating: number | null;
+  current_page: number | null;
+  total_pages: number | null;
+  created_at: string;
+}
+
+export interface JournalEntry {
+  entry_id: number;
+  reading_log_id: number;
+  entry_date: string;
+  content: string;
+  page_at_entry: number | null;
+  mood: string | null;
+  contains_spoilers: number;
+}
+
 export interface AnalyticsSummary {
   totals: { books: number; borrowers: number; active_loans: number; overdue_now: number };
   loans_per_month: { month: string; count: number }[];
@@ -159,6 +186,34 @@ export const api = {
   },
   analytics: {
     summary: (months = 12) => request<AnalyticsSummary>(`/analytics/summary?months=${months}`),
+  },
+  reading: {
+    list: (status?: ReadingStatus) =>
+      request<ReadingLogItem[]>(`/reading/${status ? `?status=${status}` : ""}`),
+    create: (payload: {
+      title?: string;
+      author?: string;
+      book_id?: number;
+      cover_url?: string;
+      total_pages?: number;
+      status?: ReadingStatus;
+    }) => request<ReadingLogItem>("/reading/", { method: "POST", body: JSON.stringify(payload) }),
+    updateStatus: (id: number, status: ReadingStatus, rating?: number) =>
+      request<ReadingLogItem>(`/reading/${id}/status`, {
+        method: "PATCH",
+        body: JSON.stringify({ status, rating }),
+      }),
+    updateProgress: (id: number, current_page: number, total_pages?: number) =>
+      request<ReadingLogItem>(`/reading/${id}/progress`, {
+        method: "PATCH",
+        body: JSON.stringify({ current_page, total_pages }),
+      }),
+    remove: (id: number) => request<{ detail: string }>(`/reading/${id}`, { method: "DELETE" }),
+    entries: (id: number) => request<JournalEntry[]>(`/reading/${id}/entries`),
+    addEntry: (
+      id: number,
+      payload: { content: string; page_at_entry?: number; mood?: string; contains_spoilers?: boolean }
+    ) => request<JournalEntry>(`/reading/${id}/entries`, { method: "POST", body: JSON.stringify(payload) }),
   },
   openLibrary: {
     lookup: async (isbn: string) => {

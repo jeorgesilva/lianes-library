@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from "./lib/AuthContext";
 import { Sidebar } from "./components/Sidebar";
 import { Dashboard } from "./pages/Dashboard";
 import { SmartAssistant } from "./pages/SmartAssistant";
+import { Reading } from "./pages/Reading";
 import { BookCatalog } from "./pages/BookCatalog";
 import { Borrowers } from "./pages/Borrowers";
 import { Loans } from "./pages/Loans";
@@ -22,6 +23,7 @@ function ProtectedLayout() {
       <main className="flex-1 p-4 sm:p-8">
         <Routes>
           <Route path="/" element={<Dashboard />} />
+          <Route path="/reading" element={<Reading />} />
           <Route path="/assistant" element={<SmartAssistant />} />
           <Route path="/catalog" element={<BookCatalog />} />
           <Route path="/borrowers" element={<Borrowers />} />
