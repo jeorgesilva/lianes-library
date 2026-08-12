@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../lib/AuthContext";
+import { api } from "../lib/api";
 import { NotificationBell } from "./NotificationBell";
 
 interface NavItem {
@@ -19,7 +21,13 @@ const navGroups: NavGroup[] = [
   { heading: "Discover", items: [{ to: "/", label: "Home", icon: "🍿", end: true }] },
   { heading: "My Reading", items: [{ to: "/reading", label: "My Reading", icon: "📓" }] },
   { heading: "My Collection", items: [{ to: "/catalog", label: "Book Catalog", icon: "📖" }] },
-  { heading: "Loans", items: [{ to: "/loans", label: "Loans", icon: "🔄" }] },
+  {
+    heading: "Loans",
+    items: [
+      { to: "/loans", label: "Loaned Out", icon: "🔄" },
+      { to: "/borrowed-by-me", label: "Borrowed by Me", icon: "📦" },
+    ],
+  },
   { heading: "People", items: [{ to: "/borrowers", label: "Borrowers", icon: "👥" }] },
   { items: [{ to: "/assistant", label: "Smart Assistant", icon: "🧠" }] },
   { heading: "Insights", items: [{ to: "/analytics", label: "Analytics", icon: "📊" }] },
@@ -82,6 +90,12 @@ function UserFooter() {
 
 export function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const queryClient = useQueryClient();
+  const { data: notifications } = useQuery({ queryKey: ["notifications"], queryFn: api.notifications.list });
+  const markReadMutation = useMutation({
+    mutationFn: (id: number) => api.notifications.markRead(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
+  });
 
   return (
     <>
@@ -95,7 +109,7 @@ export function Sidebar() {
           ☰
         </button>
         <h1 className="font-display text-base font-bold text-text">📚 Liane's Library</h1>
-        <NotificationBell />
+        <NotificationBell notifications={notifications} onMarkRead={(id) => markReadMutation.mutate(id)} />
       </header>
 
       <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-surface/50 p-6 sm:flex">
@@ -104,7 +118,7 @@ export function Sidebar() {
             <h1 className="font-display text-lg font-bold text-text">📚 Liane's Library</h1>
             <p className="mt-1 text-sm text-text-muted">Welcome to your smart book tracker!</p>
           </div>
-          <NotificationBell />
+          <NotificationBell notifications={notifications} onMarkRead={(id) => markReadMutation.mutate(id)} />
         </div>
         <NavGroups />
         <UserFooter />

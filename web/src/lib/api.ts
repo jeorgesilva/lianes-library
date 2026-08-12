@@ -108,6 +108,34 @@ export interface JournalEntry {
   contains_spoilers: number;
 }
 
+export interface BorrowRecord {
+  borrow_id: number;
+  title: string;
+  author: string | null;
+  isbn: string | null;
+  cover_url: string | null;
+  lender_name: string;
+  borrowed_date: string;
+  due_date: string | null;
+  returned_date: string | null;
+  reminder_lead_days: number;
+  notes: string | null;
+  days_until_due: number | null;
+  created_at: string;
+}
+
+export type NotificationType = "OVERDUE_LOAN" | "PRICE_DROP" | "BORROW_DUE_SOON" | "EVENT_NEARBY";
+
+export interface AppNotification {
+  notification_id: number;
+  type: NotificationType;
+  title: string;
+  body: string | null;
+  link: string | null;
+  read_at: string | null;
+  created_at: string;
+}
+
 export interface AnalyticsSummary {
   totals: { books: number; borrowers: number; active_loans: number; overdue_now: number };
   loans_per_month: { month: string; count: number }[];
@@ -223,6 +251,32 @@ export const api = {
       id: number,
       payload: { content: string; page_at_entry?: number; mood?: string; contains_spoilers?: boolean }
     ) => request<JournalEntry>(`/reading/${id}/entries`, { method: "POST", body: JSON.stringify(payload) }),
+  },
+  borrowed: {
+    list: (status?: "active" | "returned") =>
+      request<BorrowRecord[]>(`/borrowed/${status ? `?status=${status}` : ""}`),
+    create: (payload: {
+      title: string;
+      lender_name: string;
+      author?: string;
+      isbn?: string;
+      cover_url?: string;
+      borrowed_date?: string;
+      due_date?: string;
+      reminder_lead_days?: number;
+      notes?: string;
+    }) => request<BorrowRecord>("/borrowed/", { method: "POST", body: JSON.stringify(payload) }),
+    update: (
+      id: number,
+      payload: { due_date?: string; lender_name?: string; reminder_lead_days?: number; notes?: string }
+    ) => request<BorrowRecord>(`/borrowed/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
+    return: (id: number, returned_date?: string) =>
+      request<BorrowRecord>(`/borrowed/${id}/return`, { method: "POST", body: JSON.stringify({ returned_date }) }),
+    remove: (id: number) => request<{ detail: string }>(`/borrowed/${id}`, { method: "DELETE" }),
+  },
+  notifications: {
+    list: () => request<AppNotification[]>("/notifications/"),
+    markRead: (id: number) => request<{ detail: string }>(`/notifications/${id}/read`, { method: "POST" }),
   },
   openLibrary: {
     lookup: async (isbn: string) => {

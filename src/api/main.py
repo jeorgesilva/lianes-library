@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from src.api.routers import books, loans, borrowers, search, chat, auth, analytics, reading
+from src.api.routers import books, loans, borrowers, search, chat, auth, analytics, reading, borrowed, notifications
 
 app = FastAPI(
     title="Liane's Smart Library API",
@@ -23,6 +23,8 @@ app.include_router(search.router)
 app.include_router(chat.router)
 app.include_router(analytics.router)
 app.include_router(reading.router)
+app.include_router(borrowed.router)
+app.include_router(notifications.router)
 
 @app.get("/")
 def read_root():

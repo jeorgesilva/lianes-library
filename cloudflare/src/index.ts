@@ -1,5 +1,5 @@
 import { Container, getContainer } from "@cloudflare/containers";
-import { checkOverdueAndNotify } from "./notifications";
+import { checkOverdueAndNotify, checkBorrowDueAndNotify } from "./notifications";
 
 export interface Env {
   LIANES_API: DurableObjectNamespace<LianesApi>;
@@ -82,6 +82,15 @@ export default {
       return Response.json(result);
     }
 
+    // Manual trigger for the "borrowed by me" due-date reminder job.
+    if (url.pathname === "/__internal/check-borrow-due" && request.method === "POST") {
+      if (request.headers.get("X-Internal-Token") !== env.INTERNAL_D1_TOKEN) {
+        return new Response("Forbidden", { status: 403 });
+      }
+      const result = await checkBorrowDueAndNotify(env);
+      return Response.json(result);
+    }
+
     let lastError: unknown;
 
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
@@ -119,5 +128,6 @@ export default {
 
   async scheduled(_event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
     ctx.waitUntil(checkOverdueAndNotify(env));
+    ctx.waitUntil(checkBorrowDueAndNotify(env));
   },
 };

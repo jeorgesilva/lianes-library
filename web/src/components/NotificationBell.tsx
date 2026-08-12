@@ -1,16 +1,9 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { EmptyState } from "./EmptyState";
+import type { AppNotification, NotificationType } from "../lib/api";
 
-export interface AppNotification {
-  notification_id: number;
-  type: "OVERDUE_LOAN" | "PRICE_DROP" | "BORROW_DUE_SOON" | "EVENT_NEARBY";
-  title: string;
-  body?: string | null;
-  link?: string | null;
-  read_at?: string | null;
-}
-
-const TYPE_ICON: Record<AppNotification["type"], string> = {
+const TYPE_ICON: Record<NotificationType, string> = {
   OVERDUE_LOAN: "🔄",
   PRICE_DROP: "💰",
   BORROW_DUE_SOON: "⏳",
@@ -26,6 +19,7 @@ export function NotificationBell({
 }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
   const unreadCount = notifications.filter((n) => !n.read_at).length;
 
   useEffect(() => {
@@ -64,7 +58,13 @@ export function NotificationBell({
                 <li key={n.notification_id}>
                   <button
                     type="button"
-                    onClick={() => onMarkRead?.(n.notification_id)}
+                    onClick={() => {
+                      if (!n.read_at) onMarkRead?.(n.notification_id);
+                      if (n.link) {
+                        setOpen(false);
+                        navigate(n.link);
+                      }
+                    }}
                     className={`flex w-full flex-col gap-0.5 rounded-lg px-2 py-2 text-left text-sm transition-colors hover:bg-surface-hover ${
                       n.read_at ? "opacity-60" : ""
                     }`}

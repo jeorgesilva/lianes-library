@@ -8,6 +8,7 @@ import { Reading } from "./pages/Reading";
 import { BookCatalog } from "./pages/BookCatalog";
 import { Borrowers } from "./pages/Borrowers";
 import { Loans } from "./pages/Loans";
+import { BorrowedByMe } from "./pages/BorrowedByMe";
 import { Login } from "./pages/Login";
 import { Analytics } from "./pages/Analytics";
 
@@ -28,6 +29,7 @@ function ProtectedLayout() {
           <Route path="/catalog" element={<BookCatalog />} />
           <Route path="/borrowers" element={<Borrowers />} />
           <Route path="/loans" element={<Loans />} />
+          <Route path="/borrowed-by-me" element={<BorrowedByMe />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

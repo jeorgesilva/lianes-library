@@ -14,11 +14,50 @@ interface OverdueRow {
   days_overdue: number;
 }
 
+interface BorrowDueRow {
+  owner_id: number;
+  borrow_id: number;
+  title: string;
+  lender_name: string;
+  due_date: string;
+  days_until_due: number; // negative once overdue
+}
+
 interface EmailMessage {
   to: string;
   subject: string;
   html: string;
   text: string;
+}
+
+interface NotificationCandidate {
+  owner_id: number;
+  type: "OVERDUE_LOAN" | "PRICE_DROP" | "BORROW_DUE_SOON" | "EVENT_NEARBY";
+  title: string;
+  body: string;
+  link: string;
+}
+
+// In-app notification center (section 5.1). Dedupes on (owner, type, link):
+// if an unread notification with the same link already exists we skip it,
+// so a still-overdue item doesn't spam a fresh row every single day — a new
+// one only appears once the user has read (dismissed) the previous one.
+async function insertNotificationsIfMissing(env: Env, candidates: NotificationCandidate[]): Promise<number> {
+  let inserted = 0;
+  for (const c of candidates) {
+    const existing = await env.DB.prepare(
+      `SELECT notification_id FROM notifications WHERE owner_id = ? AND type = ? AND link = ? AND read_at IS NULL LIMIT 1`
+    )
+      .bind(c.owner_id, c.type, c.link)
+      .first();
+    if (existing) continue;
+
+    await env.DB.prepare(`INSERT INTO notifications (owner_id, type, title, body, link) VALUES (?, ?, ?, ?, ?)`)
+      .bind(c.owner_id, c.type, c.title, c.body, c.link)
+      .run();
+    inserted++;
+  }
+  return inserted;
 }
 
 async function getOverdueLoans(env: Env): Promise<OverdueRow[]> {
@@ -106,7 +145,7 @@ Reminder emails were also sent to any borrower with an email on file.`;
   };
 }
 
-export async function checkOverdueAndNotify(env: Env): Promise<{ borrowersNotified: number; ownersNotified: number }> {
+export async function checkOverdueAndNotify(env: Env): Promise<{ borrowersNotified: number; ownersNotified: number; inAppCreated: number }> {
   const overdue = await getOverdueLoans(env);
   let borrowersNotified = 0;
   let ownersNotified = 0;
@@ -116,6 +155,8 @@ export async function checkOverdueAndNotify(env: Env): Promise<{ borrowersNotifi
     if (!byOwner.has(row.owner_id)) byOwner.set(row.owner_id, []);
     byOwner.get(row.owner_id)!.push(row);
   }
+
+  const candidates: NotificationCandidate[] = [];
 
   for (const [, ownerLoans] of byOwner) {
     const owner = ownerLoans[0];
@@ -141,7 +182,61 @@ export async function checkOverdueAndNotify(env: Env): Promise<{ borrowersNotifi
     digest.to = owner.owner_email;
     await sendEmail(env, digest);
     ownersNotified++;
+
+    // One in-app notification per overdue loan, so the owner sees it in the bell too.
+    for (const loan of ownerLoans) {
+      candidates.push({
+        owner_id: loan.owner_id,
+        type: "OVERDUE_LOAN",
+        title: `"${loan.book_title}" is overdue`,
+        body: `${loan.borrower_first_name} ${loan.borrower_last_name} has had it ${loan.days_overdue} day(s) past the due date.`,
+        link: "/loans",
+      });
+    }
   }
 
-  return { borrowersNotified, ownersNotified };
+  const inAppCreated = await insertNotificationsIfMissing(env, candidates);
+
+  return { borrowersNotified, ownersNotified, inAppCreated };
+}
+
+async function getBorrowsNeedingReminder(env: Env): Promise<BorrowDueRow[]> {
+  const result = await env.DB.prepare(
+    `
+    SELECT owner_id, borrow_id, title, lender_name, due_date,
+           CAST(julianday(due_date) - julianday('now') AS INTEGER) as days_until_due
+    FROM borrow_records
+    WHERE returned_date IS NULL
+      AND due_date IS NOT NULL
+      AND julianday(due_date) - julianday('now') <= reminder_lead_days
+    ORDER BY due_date ASC
+    `
+  ).all<BorrowDueRow>();
+  return result.results;
+}
+
+// Books Liane borrowed FROM someone else (borrow_records) — the opposite
+// direction from checkOverdueAndNotify's transactions/Loans check. In-app
+// only for now (section 5.1 item 1); the daily email digest for this joins
+// in once Resend is wired up (Fase 3).
+export async function checkBorrowDueAndNotify(env: Env): Promise<{ inAppCreated: number }> {
+  const dueSoon = await getBorrowsNeedingReminder(env);
+
+  const candidates: NotificationCandidate[] = dueSoon.map((b) => {
+    const overdue = b.days_until_due < 0;
+    return {
+      owner_id: b.owner_id,
+      type: "BORROW_DUE_SOON",
+      title: overdue
+        ? `"${b.title}" is overdue to return to ${b.lender_name}`
+        : `"${b.title}" is due back to ${b.lender_name} soon`,
+      body: overdue
+        ? `${Math.abs(b.days_until_due)} day(s) past the date you agreed to return it.`
+        : `Due back in ${b.days_until_due} day(s) (${b.due_date}).`,
+      link: "/borrowed-by-me",
+    };
+  });
+
+  const inAppCreated = await insertNotificationsIfMissing(env, candidates);
+  return { inAppCreated };
 }
