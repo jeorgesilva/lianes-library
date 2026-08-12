@@ -13,9 +13,8 @@ def create_book(owner_id: int, title: str, author: str, isbn: str = None, cost: 
     )
     return dict(row)
 
-def get_books(owner_id: int, title: str = None, author: str = None, status: str = None, limit: int = 100) -> List[Dict[str, Any]]:
-    """Busca livros do usuário usando filtros opcionais."""
-    query = "SELECT * FROM books WHERE owner_id = ?"
+def _filter_books_query(owner_id: int, title: str = None, author: str = None, status: str = None) -> tuple[str, List[Any]]:
+    query = "FROM books WHERE owner_id = ?"
     params: List[Any] = [owner_id]
 
     if title:
@@ -28,10 +27,28 @@ def get_books(owner_id: int, title: str = None, author: str = None, status: str 
         query += " AND book_status = ?"
         params.append(status)
 
-    query += " LIMIT ?"
-    params.append(limit)
+    return query, params
+
+def get_books(
+    owner_id: int,
+    title: str = None,
+    author: str = None,
+    status: str = None,
+    limit: int = 100,
+    offset: int = 0,
+) -> List[Dict[str, Any]]:
+    """Busca livros do usuário usando filtros opcionais, com paginação."""
+    where, params = _filter_books_query(owner_id, title, author, status)
+    query = f"SELECT * {where} ORDER BY book_id LIMIT ? OFFSET ?"
+    params = [*params, limit, offset]
 
     return [dict(r) for r in d1_query(query, params)]
+
+def count_books(owner_id: int, title: str = None, author: str = None, status: str = None) -> int:
+    """Conta livros do usuário usando os mesmos filtros opcionais de get_books."""
+    where, params = _filter_books_query(owner_id, title, author, status)
+    row = d1_one(f"SELECT COUNT(*) as c {where}", params)
+    return row["c"]
 
 def get_book_by_id(owner_id: int, book_id: int) -> Optional[Dict[str, Any]]:
     """Busca um único livro do usuário pelo seu ID."""

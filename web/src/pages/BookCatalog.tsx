@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/api";
 import { Button } from "../components/Button";
 import { Card } from "../components/Card";
@@ -108,31 +108,102 @@ function AddManually() {
   );
 }
 
+const PAGE_SIZE = 50;
+
 function Collection() {
-  const { data: books, isLoading } = useQuery({ queryKey: ["books"], queryFn: () => api.books.list() });
-  if (isLoading) return null;
+  const [title, setTitle] = useState("");
+  const [author, setAuthor] = useState("");
+  const [status, setStatus] = useState("");
+  const [page, setPage] = useState(0);
+
+  const filters = { title: title || undefined, author: author || undefined, status: status || undefined };
+
+  const { data: books, isLoading } = useQuery({
+    queryKey: ["books", filters, page],
+    queryFn: () => api.books.list({ ...filters, limit: PAGE_SIZE, offset: page * PAGE_SIZE }),
+    placeholderData: keepPreviousData,
+  });
+
+  const { data: countData } = useQuery({
+    queryKey: ["books", "count", filters],
+    queryFn: () => api.books.count(filters),
+    placeholderData: keepPreviousData,
+  });
+
+  const total = countData?.count ?? 0;
+  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  function updateFilter(setter: (v: string) => void, value: string) {
+    setter(value);
+    setPage(0);
+  }
+
   return (
-    <div className="mt-6 overflow-x-auto">
-      <table className="w-full text-left text-sm">
-        <thead className="text-text-muted">
-          <tr>
-            <th className="pb-2">ID</th>
-            <th className="pb-2">Title</th>
-            <th className="pb-2">Author</th>
-            <th className="pb-2">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {books?.map((b) => (
-            <tr key={b.book_id} className="border-t border-border">
-              <td className="py-2">{b.book_id}</td>
-              <td className="py-2">{b.title}</td>
-              <td className="py-2">{b.author}</td>
-              <td className="py-2">{b.book_status}</td>
+    <div className="mt-6">
+      <div className="mb-4 flex flex-wrap gap-3">
+        <Field label="Title">
+          <Input value={title} onChange={(e) => updateFilter(setTitle, e.target.value)} placeholder="Search title..." />
+        </Field>
+        <Field label="Author">
+          <Input value={author} onChange={(e) => updateFilter(setAuthor, e.target.value)} placeholder="Search author..." />
+        </Field>
+        <Field label="Status">
+          <select
+            className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text"
+            value={status}
+            onChange={(e) => updateFilter(setStatus, e.target.value)}
+          >
+            <option value="">All</option>
+            <option value="AVAILABLE">Available</option>
+            <option value="BORROWED">Borrowed</option>
+            <option value="LOST">Lost</option>
+            <option value="DAMAGED">Damaged</option>
+          </select>
+        </Field>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-sm">
+          <thead className="text-text-muted">
+            <tr>
+              <th className="pb-2">ID</th>
+              <th className="pb-2">Title</th>
+              <th className="pb-2">Author</th>
+              <th className="pb-2">Status</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {books?.map((b) => (
+              <tr key={b.book_id} className="border-t border-border">
+                <td className="py-2">{b.book_id}</td>
+                <td className="py-2">{b.title}</td>
+                <td className="py-2">{b.author}</td>
+                <td className="py-2">{b.book_status}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {isLoading && <p className="mt-4 text-text-muted">Loading...</p>}
+        {!isLoading && books?.length === 0 && <p className="mt-4 text-text-muted">No books found.</p>}
+      </div>
+
+      <div className="mt-4 flex items-center justify-between text-sm text-text-muted">
+        <span>
+          {total.toLocaleString()} book{total === 1 ? "" : "s"} · page {page + 1} of {pageCount}
+        </span>
+        <div className="flex gap-2">
+          <Button type="button" onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0}>
+            ← Previous
+          </Button>
+          <Button
+            type="button"
+            onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+            disabled={page + 1 >= pageCount}
+          >
+            Next →
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

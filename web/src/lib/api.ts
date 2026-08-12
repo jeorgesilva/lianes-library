@@ -153,14 +153,23 @@ export const api = {
       }),
   },
   books: {
-    list: (params?: { title?: string; author?: string; status?: string; limit?: number }) => {
+    list: (params?: { title?: string; author?: string; status?: string; limit?: number; offset?: number }) => {
       const qs = new URLSearchParams();
       if (params?.title) qs.set("title", params.title);
       if (params?.author) qs.set("author", params.author);
       if (params?.status) qs.set("status", params.status);
       if (params?.limit) qs.set("limit", String(params.limit));
+      if (params?.offset) qs.set("offset", String(params.offset));
       const suffix = qs.toString() ? `?${qs}` : "";
       return request<Book[]>(`/books/${suffix}`);
+    },
+    count: (params?: { title?: string; author?: string; status?: string }) => {
+      const qs = new URLSearchParams();
+      if (params?.title) qs.set("title", params.title);
+      if (params?.author) qs.set("author", params.author);
+      if (params?.status) qs.set("status", params.status);
+      const suffix = qs.toString() ? `?${qs}` : "";
+      return request<{ count: number }>(`/books/count${suffix}`);
     },
     create: (payload: { title: string; author?: string; isbn?: string; cost?: number; cover_url?: string }) =>
       request<Book>("/books/", { method: "POST", body: JSON.stringify(payload) }),

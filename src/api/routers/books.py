@@ -37,10 +37,21 @@ def list_books(
     author: Optional[str] = None,
     status: Optional[str] = None,
     limit: int = Query(100, le=500),
+    offset: int = Query(0, ge=0),
     owner_id: int = Depends(get_current_user_id),
 ):
-    """Lista livros com filtros opcionais."""
-    return crud_books.get_books(owner_id=owner_id, title=title, author=author, status=status, limit=limit)
+    """Lista livros com filtros opcionais, paginado."""
+    return crud_books.get_books(owner_id=owner_id, title=title, author=author, status=status, limit=limit, offset=offset)
+
+@router.get("/count")
+def count_books(
+    title: Optional[str] = None,
+    author: Optional[str] = None,
+    status: Optional[str] = None,
+    owner_id: int = Depends(get_current_user_id),
+):
+    """Conta livros do usuário usando os mesmos filtros opcionais de list_books."""
+    return {"count": crud_books.count_books(owner_id=owner_id, title=title, author=author, status=status)}
 
 @router.get("/{book_id}")
 def get_book(book_id: int, owner_id: int = Depends(get_current_user_id)):
