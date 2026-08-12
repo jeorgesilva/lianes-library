@@ -18,7 +18,13 @@ interface NavGroup {
 }
 
 const navGroups: NavGroup[] = [
-  { heading: "Discover", items: [{ to: "/", label: "Home", icon: "🍿", end: true }] },
+  {
+    heading: "Discover",
+    items: [
+      { to: "/", label: "Home", icon: "🍿", end: true },
+      { to: "/recommendations", label: "Recommendations", icon: "✨" },
+    ],
+  },
   { heading: "My Reading", items: [{ to: "/reading", label: "My Reading", icon: "📓" }] },
   {
     heading: "My Collection",

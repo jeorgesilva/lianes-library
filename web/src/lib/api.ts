@@ -153,6 +153,22 @@ export interface WishlistPriceSnapshot {
   checked_at: string;
 }
 
+export interface Recommendation {
+  recommendation_id: number;
+  title: string;
+  author: string | null;
+  isbn: string | null;
+  cover_url: string | null;
+  reason: string | null;
+  source_genre: string | null;
+  match_score: number | null;
+  best_price: number | null;
+  best_price_source: string | null;
+  best_price_url: string | null;
+  generated_at: string;
+  expires_at: string;
+}
+
 export type NotificationType = "OVERDUE_LOAN" | "PRICE_DROP" | "BORROW_DUE_SOON" | "EVENT_NEARBY";
 
 export interface AppNotification {
@@ -325,6 +341,11 @@ export const api = {
     reactivate: (id: number) => request<WishlistItem>(`/wishlist/${id}/reactivate`, { method: "POST" }),
     snapshots: (id: number) => request<WishlistPriceSnapshot[]>(`/wishlist/${id}/snapshots`),
     remove: (id: number) => request<{ detail: string }>(`/wishlist/${id}`, { method: "DELETE" }),
+  },
+  recommendations: {
+    list: () => request<Recommendation[]>("/recommendations/"),
+    refresh: () => request<Recommendation[]>("/recommendations/refresh", { method: "POST" }),
+    dismiss: (id: number) => request<{ detail: string }>(`/recommendations/${id}/dismiss`, { method: "POST" }),
   },
   openLibrary: {
     lookup: async (isbn: string) => {
