@@ -9,7 +9,7 @@ router = APIRouter(prefix="/search", tags=["AI & Search"])
 def search_books_by_vibe(
     q: str = Query(..., description="A frase, sinopse ou 'vibe' que você quer buscar"),
     limit: int = Query(5, description="Número máximo de livros para retornar", le=20),
-    _owner_id: int = Depends(get_current_user_id),
+    owner_id: int = Depends(get_current_user_id),
 ):
     """
     **Vibe Search (Busca Semântica)**
@@ -21,7 +21,7 @@ def search_books_by_vibe(
         raise HTTPException(status_code=400, detail="A query de busca não pode estar vazia.")
         
     try:
-        results = vibe_search(query=q, limit=limit)
+        results = vibe_search(query=q, owner_id=owner_id, limit=limit)
         return {
             "query": q,
             "count": len(results),

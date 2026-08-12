@@ -1,5 +1,5 @@
-from typing import Optional, Dict, Any
-from src.db.d1_client import d1_one
+from typing import Optional, Dict, Any, List
+from src.db.d1_client import d1_one, d1_query
 
 
 def create_user(first_name: str, last_name: Optional[str], email: str, password_hash: str) -> Dict[str, Any]:
@@ -26,3 +26,9 @@ def get_user_by_id(user_id: int) -> Optional[Dict[str, Any]]:
         [user_id],
     )
     return dict(row) if row else None
+
+
+def list_all_user_ids() -> List[int]:
+    """Retorna o user_id de todos os usuários cadastrados."""
+    rows = d1_query("SELECT user_id FROM users", [])
+    return [row["user_id"] for row in rows]

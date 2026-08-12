@@ -9,7 +9,7 @@ class ChatRequest(BaseModel):
     message: str
 
 @router.post("/")
-def ask_the_librarian(request: ChatRequest, _owner_id: int = Depends(get_current_user_id)):
+def ask_the_librarian(request: ChatRequest, owner_id: int = Depends(get_current_user_id)):
     """
     Envia uma mensagem para o Agente RAG da Biblioteca da Liane.
     Ele buscará livros por semântica e responderá em linguagem natural.
@@ -19,7 +19,7 @@ def ask_the_librarian(request: ChatRequest, _owner_id: int = Depends(get_current
         
     try:
         # Chama a função que faz o RAG
-        reply = chat_with_librarian(request.message)
+        reply = chat_with_librarian(request.message, owner_id=owner_id)
         return {"reply": reply}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro interno do LLM: {str(e)}")

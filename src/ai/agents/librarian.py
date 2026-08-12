@@ -2,14 +2,14 @@ from src.ai.vectorstore import vibe_search
 # Importing your exact function from the file you provided!
 from src.ai.llm.hf_inference import simple_completion 
 
-def chat_with_librarian(user_message: str) -> str:
+def chat_with_librarian(user_message: str, owner_id: int) -> str:
     """
     RAG Agent (Mistral-7B): Searches for books in ChromaDB and formulates a response.
     """
     print("🔍 Searching for context in the vector database...")
-    
+
     # 1. Retrieval: Search for relevant books based on the semantic "vibe"
-    rag_results = vibe_search(user_message, limit=3)
+    rag_results = vibe_search(user_message, owner_id=owner_id, limit=3)
     
     # 2. Context Formatting
     if not rag_results:

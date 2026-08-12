@@ -20,15 +20,16 @@ def get_pinecone_db() -> PineconeVectorStore:
         pinecone_api_key=PINECONE_API_KEY
     )
 
-def vibe_search(query: str, limit: int = 5) -> List[Dict[str, Any]]:
+def vibe_search(query: str, owner_id: int, limit: int = 5) -> List[Dict[str, Any]]:
     """
     A famosa 'Vibe Search'.
-    Busca livros por similaridade semântica ao invés de palavras-chave exatas.
+    Busca livros por similaridade semântica ao invés de palavras-chave exatas,
+    restrita aos livros pertencentes a owner_id.
     """
     db = get_pinecone_db()
-    
-    # Busca os K documentos mais similares ao texto digitado
-    results = db.similarity_search_with_score(query, k=limit)
+
+    # Busca os K documentos mais similares ao texto digitado, filtrando por dono
+    results = db.similarity_search_with_score(query, k=limit, filter={"owner_id": owner_id})
     
     formatted_results = []
     for doc, score in results:
