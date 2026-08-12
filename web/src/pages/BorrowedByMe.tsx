@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, type BorrowRecord } from "../lib/api";
+import { borrowTone } from "../lib/dueDate";
 import { Card } from "../components/Card";
 import { Button } from "../components/Button";
 import { Field, Input } from "../components/Input";
@@ -96,14 +97,6 @@ function AddBorrowForm() {
   );
 }
 
-function dueTone(record: BorrowRecord): { tone: "success" | "warning" | "danger" | "neutral"; label: string } {
-  if (record.returned_date) return { tone: "neutral", label: "Returned" };
-  if (record.days_until_due == null) return { tone: "neutral", label: "No due date" };
-  if (record.days_until_due < 0) return { tone: "danger", label: `${Math.abs(record.days_until_due)}d overdue` };
-  if (record.days_until_due <= record.reminder_lead_days) return { tone: "warning", label: `Due in ${record.days_until_due}d` };
-  return { tone: "success", label: `Due in ${record.days_until_due}d` };
-}
-
 function BorrowCard({ record }: { record: BorrowRecord }) {
   const queryClient = useQueryClient();
   const returnMutation = useMutation({
@@ -114,7 +107,7 @@ function BorrowCard({ record }: { record: BorrowRecord }) {
     mutationFn: () => api.borrowed.remove(record.borrow_id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["borrowed"] }),
   });
-  const status = dueTone(record);
+  const status = borrowTone(record);
 
   return (
     <Card className="flex gap-3">

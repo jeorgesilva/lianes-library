@@ -12,7 +12,7 @@ export function BookCarousel({
   renderActions,
   onCardClick,
 }: {
-  title: string;
+  title?: string;
   subtitle?: string;
   books: Book[];
   isLoading?: boolean;
@@ -33,7 +33,7 @@ export function BookCarousel({
 
   return (
     <section className="group/row relative mb-8">
-      <h2 className="font-display text-lg font-semibold text-text">{title}</h2>
+      {title && <h2 className="font-display text-lg font-semibold text-text">{title}</h2>}
       {subtitle && <p className="mb-1 text-xs text-text-muted">{subtitle}</p>}
 
       <div className="relative">

@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../lib/AuthContext";
 import { api } from "../lib/api";
 import { NotificationBell } from "./NotificationBell";
+import { ThemeToggle } from "./ThemeToggle";
 
 interface NavItem {
   to: string;
@@ -122,7 +123,10 @@ export function Sidebar() {
           ☰
         </button>
         <h1 className="font-display text-base font-bold text-text">📚 Liane's Library</h1>
-        <NotificationBell notifications={notifications} onMarkRead={(id) => markReadMutation.mutate(id)} />
+        <div className="flex items-center gap-1">
+          <ThemeToggle />
+          <NotificationBell notifications={notifications} onMarkRead={(id) => markReadMutation.mutate(id)} />
+        </div>
       </header>
 
       <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-surface/50 p-6 sm:flex">
@@ -131,7 +135,10 @@ export function Sidebar() {
             <h1 className="font-display text-lg font-bold text-text">📚 Liane's Library</h1>
             <p className="mt-1 text-sm text-text-muted">Welcome to your smart book tracker!</p>
           </div>
-          <NotificationBell notifications={notifications} onMarkRead={(id) => markReadMutation.mutate(id)} />
+          <div className="flex items-center gap-1">
+            <ThemeToggle />
+            <NotificationBell notifications={notifications} onMarkRead={(id) => markReadMutation.mutate(id)} />
+          </div>
         </div>
         <NavGroups />
         <UserFooter />

@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+/* Enables `dark:` utilities driven by a `.dark` class on <html> (see
+   lib/useTheme.ts). Most re-theming below happens for free via the CSS
+   custom properties in @theme/.dark — this variant is here for the rare
+   case a component needs a genuinely different rule per mode, not just a
+   different color value. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @font-face {
   font-family: "Fraunces";
   font-style: normal;
@@ -25,24 +32,48 @@
 }
 
 @theme {
-  --color-bg: #0f1116;
-  --color-surface: #1e232e;
-  --color-surface-hover: #262c3a;
-  --color-surface-raised: #2a3142;
-  --color-border: #2d3748;
-  --color-text: #e0e0e0;
-  --color-text-muted: #9ca3af;
-  --color-primary: #6c63ff;
-  --color-accent: #a855f7;
-  --color-accent-2: #8b5cf6;
+  /* Cozy Minimalist / Editorial — warm cream & ivory is the default (light) theme. */
+  --color-bg: #f4ede0;
+  --color-surface: #fffcf5;
+  --color-surface-hover: #f7f0e2;
+  --color-surface-raised: #ffffff;
+  --color-border: #e6dac4;
+  --color-text: #2e2418;
+  --color-text-muted: #8b7c64;
 
-  --color-success: #34d399;
-  --color-warning: #f59e0b;
-  --color-danger: #f87171;
-  --color-price-drop: #eab308;
+  --color-primary: #7a3442;
+  --color-on-primary: #fff8ee;
+  --color-accent: #b8863b;
+
+  --color-success: #4f7a5a;
+  --color-warning: #c2872b;
+  --color-danger: #b23b2e;
+  --color-price-drop: #c99a3a;
 
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+}
+
+/* Sepia / warm coffee — swapped in when <html> carries the .dark class.
+   Every bg-*/text-*/border-* utility above is generated from these same
+   custom properties, so no component needs a `dark:` variant to re-theme. */
+.dark {
+  --color-bg: #1e1712;
+  --color-surface: #2a2019;
+  --color-surface-hover: #342820;
+  --color-surface-raised: #3d2f25;
+  --color-border: #4a3a2c;
+  --color-text: #f1e6d3;
+  --color-text-muted: #b7a489;
+
+  --color-primary: #d98a6e;
+  --color-on-primary: #241a12;
+  --color-accent: #e0b563;
+
+  --color-success: #7fae84;
+  --color-warning: #e0a94e;
+  --color-danger: #e2705a;
+  --color-price-drop: #e6c062;
 }
 
 body {
@@ -50,6 +81,7 @@ body {
   background: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-sans);
+  transition: background-color 200ms ease, color 200ms ease;
 }
 
 #root {
