@@ -199,6 +199,7 @@ export function Dashboard() {
   // each feature's own page — the dashboard is a scannable status board,
   // not a second place to perform every mutation. ----------------------
   const booksQuery = useQuery({ queryKey: ["books"], queryFn: () => api.books.list() });
+  const booksCountQuery = useQuery({ queryKey: ["books", "count"], queryFn: () => api.books.count() });
   const loansQuery = useQuery({ queryKey: ["loans", "active"], queryFn: api.loans.active });
   const continueReadingQuery = useQuery({ queryKey: ["reading", "READING"], queryFn: () => api.reading.list("READING") });
   const wishlistQuery = useQuery({ queryKey: ["wishlist", "ACTIVE"], queryFn: () => api.wishlist.list("ACTIVE") });
@@ -279,7 +280,7 @@ export function Dashboard() {
     exploreTab === "new" ? newArrivals : exploreTab === "fantasy" ? fantasyBooks : exploreTab === "scifi" ? scifiBooks : books;
 
   const stats: { label: string; value: number; tone?: "danger" | "success" | "neutral" }[] = [
-    { label: "Books on shelf", value: books.length },
+    { label: "Books on shelf", value: booksCountQuery.data?.count ?? books.length },
     { label: "Reading now", value: readingNowCount },
     { label: "Loaned out", value: activeLoans.length },
     {
