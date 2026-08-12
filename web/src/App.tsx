@@ -6,6 +6,7 @@ import { Dashboard } from "./pages/Dashboard";
 import { SmartAssistant } from "./pages/SmartAssistant";
 import { Reading } from "./pages/Reading";
 import { Recommendations } from "./pages/Recommendations";
+import { Events } from "./pages/Events";
 import { BookCatalog } from "./pages/BookCatalog";
 import { Borrowers } from "./pages/Borrowers";
 import { Loans } from "./pages/Loans";
@@ -27,6 +28,7 @@ function ProtectedLayout() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/recommendations" element={<Recommendations />} />
+          <Route path="/events" element={<Events />} />
           <Route path="/reading" element={<Reading />} />
           <Route path="/assistant" element={<SmartAssistant />} />
           <Route path="/catalog" element={<BookCatalog />} />

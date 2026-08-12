@@ -1,6 +1,7 @@
 import { Container, getContainer } from "@cloudflare/containers";
 import { checkOverdueAndNotify, checkBorrowDueAndNotify } from "./notifications";
 import { checkWishlistPricesAndNotify } from "./wishlist";
+import { checkLiteraryEventsAndNotify } from "./events";
 import { sendDailyDigest } from "./digest";
 
 export interface Env {
@@ -16,6 +17,7 @@ export interface Env {
   RESEND_API_KEY?: string;
   RESEND_FROM_EMAIL?: string;
   GOOGLE_BOOKS_API_KEY?: string;
+  TICKETMASTER_API_KEY?: string;
 }
 
 // Stateless FastAPI backend — every request is independent, state lives in
@@ -107,6 +109,15 @@ export default {
       return Response.json(result);
     }
 
+    // Manual trigger for the weekly literary-events discovery job.
+    if (url.pathname === "/__internal/check-events" && request.method === "POST") {
+      if (request.headers.get("X-Internal-Token") !== env.INTERNAL_D1_TOKEN) {
+        return new Response("Forbidden", { status: 403 });
+      }
+      const result = await checkLiteraryEventsAndNotify(env);
+      return Response.json(result);
+    }
+
     // Manual trigger for the consolidated daily email digest.
     if (url.pathname === "/__internal/send-digest" && request.method === "POST") {
       if (request.headers.get("X-Internal-Token") !== env.INTERNAL_D1_TOKEN) {
@@ -151,12 +162,16 @@ export default {
     throw lastError;
   },
 
-  // Three time slots so a job never reads state the previous one hasn't
-  // written yet: detect (8am) -> price-check (9am, needs its own slot since
-  // it makes an external API call per wishlist item) -> digest (10am,
-  // reads the notifications rows the first two just created).
+  // Time slots so a job never reads state the previous one hasn't written
+  // yet: events (Monday 6am, weekly — events don't change hourly) ->
+  // detect (8am) -> price-check (9am, needs its own slot since it makes an
+  // external API call per wishlist item) -> digest (10am, reads the
+  // notifications rows the earlier jobs just created).
   async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
     switch (event.cron) {
+      case "0 6 * * 1":
+        ctx.waitUntil(checkLiteraryEventsAndNotify(env));
+        break;
       case "0 8 * * *":
         ctx.waitUntil(checkOverdueAndNotify(env));
         ctx.waitUntil(checkBorrowDueAndNotify(env));

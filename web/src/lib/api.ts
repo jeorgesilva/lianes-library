@@ -169,6 +169,26 @@ export interface Recommendation {
   expires_at: string;
 }
 
+export interface LiteraryEvent {
+  event_id: number;
+  source: "ticketmaster" | "manual";
+  external_id: string | null;
+  title: string;
+  description: string | null;
+  venue_name: string | null;
+  city: string | null;
+  event_date: string;
+  url: string | null;
+  image_url: string | null;
+  cached_at: string;
+}
+
+export interface EventPreferences {
+  owner_id: number;
+  city: string | null;
+  radius_km: number;
+}
+
 export type NotificationType = "OVERDUE_LOAN" | "PRICE_DROP" | "BORROW_DUE_SOON" | "EVENT_NEARBY";
 
 export interface AppNotification {
@@ -346,6 +366,22 @@ export const api = {
     list: () => request<Recommendation[]>("/recommendations/"),
     refresh: () => request<Recommendation[]>("/recommendations/refresh", { method: "POST" }),
     dismiss: (id: number) => request<{ detail: string }>(`/recommendations/${id}/dismiss`, { method: "POST" }),
+  },
+  events: {
+    list: (city?: string) => request<LiteraryEvent[]>(`/events/${city ? `?city=${encodeURIComponent(city)}` : ""}`),
+    preferences: () => request<EventPreferences>("/events/preferences"),
+    setPreferences: (payload: { city?: string; radius_km?: number }) =>
+      request<EventPreferences>("/events/preferences", { method: "PUT", body: JSON.stringify(payload) }),
+    create: (payload: {
+      title: string;
+      event_date: string;
+      description?: string;
+      venue_name?: string;
+      city?: string;
+      url?: string;
+      image_url?: string;
+    }) => request<LiteraryEvent>("/events/", { method: "POST", body: JSON.stringify(payload) }),
+    remove: (id: number) => request<{ detail: string }>(`/events/${id}`, { method: "DELETE" }),
   },
   openLibrary: {
     lookup: async (isbn: string) => {
