@@ -124,6 +124,35 @@ export interface BorrowRecord {
   created_at: string;
 }
 
+export interface WishlistItem {
+  wishlist_item_id: number;
+  title: string;
+  author: string | null;
+  isbn: string | null;
+  cover_url: string | null;
+  target_price: number | null;
+  notes: string | null;
+  status: "ACTIVE" | "PURCHASED" | "ARCHIVED";
+  added_at: string;
+  latest_price: number | null;
+  latest_currency: string | null;
+  latest_price_url: string | null;
+  latest_checked_at: string | null;
+  lowest_price: number | null;
+  first_price: number | null;
+  drop_pct: number | null;
+}
+
+export interface WishlistPriceSnapshot {
+  snapshot_id: number;
+  wishlist_item_id: number;
+  source: string;
+  price: number;
+  currency: string;
+  url: string | null;
+  checked_at: string;
+}
+
 export type NotificationType = "OVERDUE_LOAN" | "PRICE_DROP" | "BORROW_DUE_SOON" | "EVENT_NEARBY";
 
 export interface AppNotification {
@@ -277,6 +306,25 @@ export const api = {
   notifications: {
     list: () => request<AppNotification[]>("/notifications/"),
     markRead: (id: number) => request<{ detail: string }>(`/notifications/${id}/read`, { method: "POST" }),
+  },
+  wishlist: {
+    list: (status?: "ACTIVE" | "PURCHASED" | "ARCHIVED") =>
+      request<WishlistItem[]>(`/wishlist/${status ? `?status=${status}` : ""}`),
+    create: (payload: {
+      title: string;
+      author?: string;
+      isbn?: string;
+      cover_url?: string;
+      target_price?: number;
+      notes?: string;
+    }) => request<WishlistItem>("/wishlist/", { method: "POST", body: JSON.stringify(payload) }),
+    update: (id: number, payload: { target_price?: number; notes?: string }) =>
+      request<WishlistItem>(`/wishlist/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
+    markPurchased: (id: number) => request<WishlistItem>(`/wishlist/${id}/purchased`, { method: "POST" }),
+    archive: (id: number) => request<WishlistItem>(`/wishlist/${id}/archive`, { method: "POST" }),
+    reactivate: (id: number) => request<WishlistItem>(`/wishlist/${id}/reactivate`, { method: "POST" }),
+    snapshots: (id: number) => request<WishlistPriceSnapshot[]>(`/wishlist/${id}/snapshots`),
+    remove: (id: number) => request<{ detail: string }>(`/wishlist/${id}`, { method: "DELETE" }),
   },
   openLibrary: {
     lookup: async (isbn: string) => {

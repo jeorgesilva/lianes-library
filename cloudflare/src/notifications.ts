@@ -1,4 +1,5 @@
 import type { Env } from "./index";
+import { sendEmail, type EmailMessage } from "./email";
 
 interface OverdueRow {
   owner_id: number;
@@ -23,14 +24,7 @@ interface BorrowDueRow {
   days_until_due: number; // negative once overdue
 }
 
-interface EmailMessage {
-  to: string;
-  subject: string;
-  html: string;
-  text: string;
-}
-
-interface NotificationCandidate {
+export interface NotificationCandidate {
   owner_id: number;
   type: "OVERDUE_LOAN" | "PRICE_DROP" | "BORROW_DUE_SOON" | "EVENT_NEARBY";
   title: string;
@@ -42,7 +36,9 @@ interface NotificationCandidate {
 // if an unread notification with the same link already exists we skip it,
 // so a still-overdue item doesn't spam a fresh row every single day — a new
 // one only appears once the user has read (dismissed) the previous one.
-async function insertNotificationsIfMissing(env: Env, candidates: NotificationCandidate[]): Promise<number> {
+// Shared by every check* job (overdue loans, borrow-due, price drops) so
+// there's one notification pipeline, not three parallel ones.
+export async function insertNotificationsIfMissing(env: Env, candidates: NotificationCandidate[]): Promise<number> {
   let inserted = 0;
   for (const c of candidates) {
     const existing = await env.DB.prepare(
@@ -80,16 +76,6 @@ async function getOverdueLoans(env: Env): Promise<OverdueRow[]> {
   return result.results;
 }
 
-// No email provider is wired up yet (this Cloudflare account has no domain
-// onboarded to Email Sending, and no third-party provider key is configured).
-// This logs what would be sent so the detection/grouping/template logic can
-// be exercised end-to-end today; swap the body for a real provider call
-// (Cloudflare Email Service `env.EMAIL.send()`, or an HTTP call to
-// Resend/SendGrid) once one is set up.
-async function sendEmail(_env: Env, message: EmailMessage): Promise<void> {
-  console.log(`[email:mock] to=${message.to} subject="${message.subject}"\n${message.text}`);
-}
-
 function borrowerReminderEmail(borrowerName: string, ownerName: string, loans: OverdueRow[]): EmailMessage {
   const bookList = loans.map((l) => `- "${l.book_title}" (${l.days_overdue} day(s) overdue, was due ${l.due_date})`);
   const single = loans.length === 1;
@@ -119,36 +105,15 @@ ${ownerName}`;
   };
 }
 
-function ownerDigestEmail(ownerFirstName: string, loans: OverdueRow[]): EmailMessage {
-  const rows = loans.map(
-    (l) =>
-      `- "${l.book_title}" — ${l.borrower_first_name} ${l.borrower_last_name} (${l.borrower_email ?? "no email on file"}), ${l.days_overdue} day(s) overdue`
-  );
-
-  const text = `Hi ${ownerFirstName},
-
-Here's today's overdue-loans digest for your library (${loans.length} total):
-
-${rows.join("\n")}
-
-Reminder emails were also sent to any borrower with an email on file.`;
-
-  const html = `<p>Hi ${ownerFirstName},</p>
-<p>Here's today's overdue-loans digest for your library (${loans.length} total):</p>
-<ul>${loans.map((l) => `<li>"${l.book_title}" — ${l.borrower_first_name} ${l.borrower_last_name} (${l.borrower_email ?? "no email on file"}), ${l.days_overdue} day(s) overdue</li>`).join("")}</ul>`;
-
-  return {
-    to: "",
-    subject: `📚 ${loans.length} overdue book(s) in your library`,
-    text,
-    html,
-  };
-}
-
-export async function checkOverdueAndNotify(env: Env): Promise<{ borrowersNotified: number; ownersNotified: number; inAppCreated: number }> {
+// The per-owner "everything overdue" email digest used to be sent right
+// here. It's now folded into the single cross-feature daily digest
+// (digest.ts, section 5.1.2) alongside borrow-due-soon and price-drop
+// notifications, instead of Liane getting a separate email per feature —
+// this function still creates the in-app OVERDUE_LOAN rows that digest
+// reads from.
+export async function checkOverdueAndNotify(env: Env): Promise<{ borrowersNotified: number; inAppCreated: number }> {
   const overdue = await getOverdueLoans(env);
   let borrowersNotified = 0;
-  let ownersNotified = 0;
 
   const byOwner = new Map<number, OverdueRow[]>();
   for (const row of overdue) {
@@ -162,6 +127,9 @@ export async function checkOverdueAndNotify(env: Env): Promise<{ borrowersNotifi
     const owner = ownerLoans[0];
 
     // One reminder per borrower, listing all of that borrower's overdue books.
+    // Unlike the owner-facing digest, this goes to an external person about
+    // a single concern, so it stays as its own immediate email rather than
+    // folding into Liane's daily digest.
     const byBorrower = new Map<number, OverdueRow[]>();
     for (const row of ownerLoans) {
       if (!byBorrower.has(row.person_id)) byBorrower.set(row.person_id, []);
@@ -177,12 +145,6 @@ export async function checkOverdueAndNotify(env: Env): Promise<{ borrowersNotifi
       borrowersNotified++;
     }
 
-    // One digest per owner, listing everything overdue across their library.
-    const digest = ownerDigestEmail(owner.owner_first_name, ownerLoans);
-    digest.to = owner.owner_email;
-    await sendEmail(env, digest);
-    ownersNotified++;
-
     // One in-app notification per overdue loan, so the owner sees it in the bell too.
     for (const loan of ownerLoans) {
       candidates.push({
@@ -197,7 +159,7 @@ export async function checkOverdueAndNotify(env: Env): Promise<{ borrowersNotifi
 
   const inAppCreated = await insertNotificationsIfMissing(env, candidates);
 
-  return { borrowersNotified, ownersNotified, inAppCreated };
+  return { borrowersNotified, inAppCreated };
 }
 
 async function getBorrowsNeedingReminder(env: Env): Promise<BorrowDueRow[]> {
@@ -217,8 +179,7 @@ async function getBorrowsNeedingReminder(env: Env): Promise<BorrowDueRow[]> {
 
 // Books Liane borrowed FROM someone else (borrow_records) — the opposite
 // direction from checkOverdueAndNotify's transactions/Loans check. In-app
-// only for now (section 5.1 item 1); the daily email digest for this joins
-// in once Resend is wired up (Fase 3).
+// only here too; the daily digest (digest.ts) is what turns this into email.
 export async function checkBorrowDueAndNotify(env: Env): Promise<{ inAppCreated: number }> {
   const dueSoon = await getBorrowsNeedingReminder(env);
 

@@ -32,14 +32,24 @@
       "migrations_dir": "migrations"
     }
   ],
-  // Daily overdue-loan check + reminder emails (currently logged, not sent —
-  // see cloudflare/src/notifications.ts). 8am UTC.
+  // Three daily jobs, staggered so each one only reads state the previous
+  // has already written (see the scheduled() switch in src/index.ts):
+  //   8am  — overdue-loan + borrow-due-soon detection (in-app + borrower emails)
+  //   9am  — wishlist price check (external API calls, needs its own slot)
+  //   10am — consolidated digest email to the owner (Resend)
   "triggers": {
-    "crons": ["0 8 * * *"]
+    "crons": ["0 8 * * *", "0 9 * * *", "0 10 * * *"]
   },
   // Non-secret values can live here as [vars]; secrets below must be set
   // individually via `wrangler secret put <NAME>` before deploying —
   // do not put real credentials in this file.
+  //
+  // Secrets used by this Worker (all optional — every job that reads one
+  // degrades gracefully when it's unset, see src/email.ts and
+  // src/wishlist.ts):
+  //   RESEND_API_KEY       — real email sends via Resend; unset = mock-logged to console
+  //   RESEND_FROM_EMAIL    — defaults to "Liane's Library <onboarding@resend.dev>"
+  //   GOOGLE_BOOKS_API_KEY — raises the wishlist price-check rate limit above 100 req/day
   "vars": {
     "PINECONE_INDEX_NAME": "lianes-library"
   }

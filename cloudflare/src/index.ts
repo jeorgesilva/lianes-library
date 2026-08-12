@@ -1,5 +1,7 @@
 import { Container, getContainer } from "@cloudflare/containers";
 import { checkOverdueAndNotify, checkBorrowDueAndNotify } from "./notifications";
+import { checkWishlistPricesAndNotify } from "./wishlist";
+import { sendDailyDigest } from "./digest";
 
 export interface Env {
   LIANES_API: DurableObjectNamespace<LianesApi>;
@@ -9,6 +11,11 @@ export interface Env {
   HF_API_TOKEN: string;
   INTERNAL_D1_TOKEN: string;
   JWT_SECRET: string;
+  // Optional — every job that reads these degrades gracefully when unset
+  // (mock-logs the email, skips price lookups) rather than failing.
+  RESEND_API_KEY?: string;
+  RESEND_FROM_EMAIL?: string;
+  GOOGLE_BOOKS_API_KEY?: string;
 }
 
 // Stateless FastAPI backend — every request is independent, state lives in
@@ -91,6 +98,24 @@ export default {
       return Response.json(result);
     }
 
+    // Manual trigger for the wishlist price-monitoring job.
+    if (url.pathname === "/__internal/check-prices" && request.method === "POST") {
+      if (request.headers.get("X-Internal-Token") !== env.INTERNAL_D1_TOKEN) {
+        return new Response("Forbidden", { status: 403 });
+      }
+      const result = await checkWishlistPricesAndNotify(env);
+      return Response.json(result);
+    }
+
+    // Manual trigger for the consolidated daily email digest.
+    if (url.pathname === "/__internal/send-digest" && request.method === "POST") {
+      if (request.headers.get("X-Internal-Token") !== env.INTERNAL_D1_TOKEN) {
+        return new Response("Forbidden", { status: 403 });
+      }
+      const result = await sendDailyDigest(env);
+      return Response.json(result);
+    }
+
     let lastError: unknown;
 
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
@@ -126,8 +151,22 @@ export default {
     throw lastError;
   },
 
-  async scheduled(_event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
-    ctx.waitUntil(checkOverdueAndNotify(env));
-    ctx.waitUntil(checkBorrowDueAndNotify(env));
+  // Three time slots so a job never reads state the previous one hasn't
+  // written yet: detect (8am) -> price-check (9am, needs its own slot since
+  // it makes an external API call per wishlist item) -> digest (10am,
+  // reads the notifications rows the first two just created).
+  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
+    switch (event.cron) {
+      case "0 8 * * *":
+        ctx.waitUntil(checkOverdueAndNotify(env));
+        ctx.waitUntil(checkBorrowDueAndNotify(env));
+        break;
+      case "0 9 * * *":
+        ctx.waitUntil(checkWishlistPricesAndNotify(env));
+        break;
+      case "0 10 * * *":
+        ctx.waitUntil(sendDailyDigest(env));
+        break;
+    }
   },
 };

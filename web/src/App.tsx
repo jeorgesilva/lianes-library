@@ -9,6 +9,7 @@ import { BookCatalog } from "./pages/BookCatalog";
 import { Borrowers } from "./pages/Borrowers";
 import { Loans } from "./pages/Loans";
 import { BorrowedByMe } from "./pages/BorrowedByMe";
+import { Wishlist } from "./pages/Wishlist";
 import { Login } from "./pages/Login";
 import { Analytics } from "./pages/Analytics";
 
@@ -27,6 +28,7 @@ function ProtectedLayout() {
           <Route path="/reading" element={<Reading />} />
           <Route path="/assistant" element={<SmartAssistant />} />
           <Route path="/catalog" element={<BookCatalog />} />
+          <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/borrowers" element={<Borrowers />} />
           <Route path="/loans" element={<Loans />} />
           <Route path="/borrowed-by-me" element={<BorrowedByMe />} />

@@ -20,7 +20,13 @@ interface NavGroup {
 const navGroups: NavGroup[] = [
   { heading: "Discover", items: [{ to: "/", label: "Home", icon: "🍿", end: true }] },
   { heading: "My Reading", items: [{ to: "/reading", label: "My Reading", icon: "📓" }] },
-  { heading: "My Collection", items: [{ to: "/catalog", label: "Book Catalog", icon: "📖" }] },
+  {
+    heading: "My Collection",
+    items: [
+      { to: "/catalog", label: "Book Catalog", icon: "📖" },
+      { to: "/wishlist", label: "Wishlist", icon: "💜" },
+    ],
+  },
   {
     heading: "Loans",
     items: [
